@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastSyncedAt": "2026-11-24T03:50:58Z",
+    "lastSyncedAt": "2026-11-24T21:57:43Z",
     "verifiedDate": "2026-11-24",
     "totalArticles": 12,
     "feeds": [
@@ -41,39 +41,111 @@
   },
   "articles": [
     {
-      "id": "news-psa-you-can-now-turn-off-the-border-graphic-in-s",
-      "title": "PSA: You Can Now Turn Off The Border Graphic In Switch Online's GameCube App",
-      "summary": "Finally! Following the release of Wave Race: Blue Storm on the 'Nintendo Classics' GameCube app today, users have discovered one other exciting update in Version 2.2.0 . Read the full article on nintendolife.com",
-      "image": "https://images.nintendolife.com/239910857c6fa/small.jpg",
+      "id": "news-microsoft-flight-simulator-announces-a-marketpla",
+      "title": "Microsoft Flight Simulator Announces a Marketplace Exclusive: The iniBuilds Global Jet",
+      "summary": "The post Microsoft Flight Simulator Announces a Marketplace Exclusive: The iniBuilds Global Jet appeared first on XBOX Wire .",
+      "image": "assets/images/hero_editorial.webp",
+      "publishedAt": "2026-11-24",
+      "verifiedAt": "2026-11-24",
+      "sourceName": "Xbox Wire Oficial",
+      "sourceUrl": "https://news.xbox.com/en-us/2026/11/24/microsoft-flight-simulator-announces-a-marketplace-exclusive-the-inibuilds-global-jet/",
+      "category": "Consolas y plataformas",
+      "verificationType": "Oficial"
+    },
+    {
+      "id": "news-nioh-3-is-coming-to-xbox-in-2027",
+      "title": "Nioh 3 Is Coming to XBOX in 2027",
+      "summary": "Summary Team NINJA and Koei Tecmo are bringing the Nioh series to XBOX for the first time ever with Nioh 3 and Nioh 3: Complete Edition coming to XBOX Series X|S on January 28, 2027 . The Dark Samurai Action RPG...",
+      "image": "https://xboxwire.thesourcemediaassets.com/sites/2/2026/11/DLC2_03_Tachibana-Muneshige-b4548cf1cd8ad2132335.jpg",
+      "publishedAt": "2026-11-24",
+      "verifiedAt": "2026-11-24",
+      "sourceName": "Xbox Wire Oficial",
+      "sourceUrl": "https://news.xbox.com/en-us/2026/11/24/nioh-3-xbox-series-debut/",
+      "category": "Consolas y plataformas",
+      "verificationType": "Oficial"
+    },
+    {
+      "id": "news-dead-by-daylight-terrifier-s-new-killer-is-no-la",
+      "title": "Dead by Daylight: Terrifier’s New Killer is No Laughing Matter",
+      "summary": "Hope you’re not afraid of clowns. Putting the laughter in slaughter, The Terrifier steps into Dead by Daylight as the hit horror multiplayer’s latest Killer. A serial murderer fueled by a sick sense of humor, Art the...",
+      "image": "https://xboxwire.thesourcemediaassets.com/sites/2/2026/11/DBD_CH_CERT_PRSCREEN_03_WEB-0ec21cc7b7ac90e90454-1024x576.jpg",
+      "publishedAt": "2026-11-24",
+      "verifiedAt": "2026-11-24",
+      "sourceName": "Xbox Wire Oficial",
+      "sourceUrl": "https://news.xbox.com/en-us/2026/11/24/dead-by-daylight-terrifiers-new-killer-is-no-laughing-matter/",
+      "category": "Consolas y plataformas",
+      "verificationType": "Oficial"
+    },
+    {
+      "id": "news-the-reason-behind-pok-mon-s-mysterious-social-me",
+      "title": "The Reason Behind Pokémon's Mysterious Social Media Countdown Has Been Revealed",
+      "summary": "Update: Brace for disappointment. The Pokémon Company is no stranger to a little over-hyping every now and then, but its latest bit of marketing has us seriously thinking that there is a big announcement in the...",
+      "image": "https://images.nintendolife.com/a7720b6a8f9c3/small.jpg",
       "publishedAt": "2026-11-24",
       "verifiedAt": "2026-11-24",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/psa-you-can-now-turn-off-the-border-graphic-in-switch-onlines-gamecube-app",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/the-reason-behind-pokemons-mysterious-social-media-countdown-has-been-revealed",
       "category": "Consolas y plataformas",
       "verificationType": "Medio especializado"
     },
     {
-      "id": "news-final-fantasy-vii-revelation-has-been-rated-for-",
-      "title": "Final Fantasy VII Revelation Has Been Rated For Switch 2 By The ESRB",
-      "summary": "The third and final chapter arrives next April. One of the most anticipated games of 2027 is the final chapter in Square Enix's Final Fantasy VII Remake trilogy. Revelation is currently scheduled to arrive on 8th...",
-      "image": "https://images.nintendolife.com/94932e9dd3450/small.jpg",
+      "id": "news-mini-review-kuloniku-bowl-up-switch-2-a-satisfyi",
+      "title": "Mini Review: KuloNiku: Bowl Up! (Switch 2) - A Satisfying, Tactile Cooking Sim",
+      "summary": "Order up! I have a real soft spot for games that simulate cooking. A strange thing given my aversion to crafting mechanics, but cooking? I could do that all day. KuloNiku: Bowl Up! Is right up my alley, then....",
+      "image": "https://images.nintendolife.com/d9ebc9d1596e1/small.jpg",
       "publishedAt": "2026-11-24",
       "verifiedAt": "2026-11-24",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/final-fantasy-vii-revelation-has-been-rated-for-switch-2-by-the-esrb",
+      "sourceUrl": "https://www.nintendolife.com/reviews/nintendo-switch-2/kuloniku-bowl-up",
       "category": "Consolas y plataformas",
       "verificationType": "Medio especializado"
     },
     {
-      "id": "news-nintendo-expands-switch-2-s-gamecube-library-wit",
-      "title": "Nintendo Expands Switch 2's GameCube Library With Another Game This Week",
-      "summary": "Wave Race: Blue Storm makes a splash. Nintendo's GameCube title Wave Race: Blue Storm has today made a splash on the Switch Online + Expansion Pack service. If you have an active subscription and access to a Switch...",
-      "image": "https://images.nintendolife.com/acf60ab49a47c/small.jpg",
+      "id": "news-pok-mon-teams-up-with-casetify-on-a-new-line-of-",
+      "title": "Pokémon Teams Up With Casetify On A New Line Of Phone Cases And Accessories",
+      "summary": "Launching next week. The Pokémon Company really is going all out with the collaborations for its 30th anniversary. Phone case brand Casetify is next in line for a crossover, as it has announced that its new...",
+      "image": "https://images.nintendolife.com/794b776fc5a9d/small.jpg",
       "publishedAt": "2026-11-24",
       "verifiedAt": "2026-11-24",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/nintendo-expands-switch-2s-gamecube-library-with-another-game-this-week",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/pokemon-teams-up-with-casetify-on-a-new-line-of-phone-cases-and-accessories",
       "category": "Consolas y plataformas",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-call-of-duty-s-19-year-sales-streak-continues",
+      "title": "Call Of Duty’s 19-Year Sales Streak Continues",
+      "summary": "Circana has released its latest monthly sales report for the US video game industry, and in terms of game sales, Call of Duty: Modern Warfare 4 led the way. It was the No. 1 best-selling game of October 2026, and...",
+      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/MW4ImageNew.jpg?w=300",
+      "publishedAt": "2026-11-24",
+      "verifiedAt": "2026-11-24",
+      "sourceName": "GameSpot",
+      "sourceUrl": "https://www.gamespot.com/articles/call-of-dutys-19-year-sales-streak-continues/",
+      "category": "Ofertas verificadas",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-just-like-gta-6-the-witcher-4-has-a-playstation-",
+      "title": "Just Like GTA 6, The Witcher 4 Has A PlayStation Deal",
+      "summary": "CD Projekt Red has announced that just today, November 24, the Polish studio signed new deals with Sony Interactive Entertainment for The Witcher 4 's upcoming marketing campaign, among other efforts. CFO Piotr...",
+      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/WitcherCiri.png?w=300",
+      "publishedAt": "2026-11-24",
+      "verifiedAt": "2026-11-24",
+      "sourceName": "GameSpot",
+      "sourceUrl": "https://www.gamespot.com/articles/just-like-gta-6-the-witcher-4-has-a-playstation-deal/",
+      "category": "Ofertas verificadas",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-switch-2-s-black-friday-bundle-with-mario-kart-w",
+      "title": "Switch 2’s Black Friday Bundle With Mario Kart World Is Available Now For $500",
+      "summary": "It's Black Friday week, and one of the best gaming deals is a Switch 2 bundle featuring Mario Kart World and other extras for $50 off the normal price. As announced previously , the $500 bundle comes with a Switch 2...",
+      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/MKWorldSwitch.png?w=300",
+      "publishedAt": "2026-11-24",
+      "verifiedAt": "2026-11-24",
+      "sourceName": "GameSpot",
+      "sourceUrl": "https://www.gamespot.com/articles/switch-2s-black-friday-bundle-with-mario-kart-world-is-available-now-for-500/",
+      "category": "Ofertas verificadas",
       "verificationType": "Medio especializado"
     },
     {
@@ -87,66 +159,6 @@
       "sourceUrl": "https://blog.playstation.com/2026/11/23/thank-you-for-making-grand-theft-auto-vi-the-biggest-launch-in-playstation-history/",
       "category": "Lanzamientos",
       "verificationType": "Oficial"
-    },
-    {
-      "id": "news-how-to-play-grand-theft-auto-vi-in-the-cloud-and",
-      "title": "How to Play Grand Theft Auto VI in the Cloud and with Remote Play",
-      "summary": "Grand Theft Auto VI supports XBOX Cloud Gaming , making it available to play even without a current-gen console. With XBOX Cloud Gaming, you can play by streaming it straight from the cloud to your XBOX One, or XBOX...",
-      "image": "https://xboxwire.thesourcemediaassets.com/sites/2/2026/11/image-cefeee2ea6d9116d6da5.jpeg",
-      "publishedAt": "2026-11-23",
-      "verifiedAt": "2026-11-24",
-      "sourceName": "Xbox Wire Oficial",
-      "sourceUrl": "https://news.xbox.com/en-us/2026/11/23/grand-theft-auto-vi-xbox-cloud-and-remote-play/",
-      "category": "Consolas y plataformas",
-      "verificationType": "Oficial"
-    },
-    {
-      "id": "news-sea-of-remnants-set-sail-for-the-dawnbreaker-clo",
-      "title": "Sea of Remnants: Set Sail for the Dawnbreaker Closed Beta on XBOX Series X",
-      "summary": "Captains, your next adventure is on the horizon! We’re bringing Sea of Remnants to XBOX Series X for the Dawnbreaker Closed Beta Test to XBOX Insiders, beginning December 3. Gather your crew, prepare your ship, and...",
-      "image": "assets/images/hero_editorial.webp",
-      "publishedAt": "2026-11-23",
-      "verifiedAt": "2026-11-24",
-      "sourceName": "Xbox Wire Oficial",
-      "sourceUrl": "https://news.xbox.com/en-us/2026/11/23/sea-of-remnants-set-sail-for-the-dawnbreaker-closed-beta-on-xbox-series-x/",
-      "category": "Consolas y plataformas",
-      "verificationType": "Oficial"
-    },
-    {
-      "id": "news-this-gta-6-glitch-almost-ruined-the-game-s-most-",
-      "title": "This GTA 6 Glitch (Almost) Ruined The Game’s Most Iconic Scene",
-      "summary": "Note: This story will discuss a pivotal mission in Chapter 2 of Grand Theft Auto 6. A powerful sequence in Grand Theft Auto 6 is quickly becoming a favorite among the game's many players, but a technical mishap made...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-glitch.jpg?w=300",
-      "publishedAt": "2026-11-23",
-      "verifiedAt": "2026-11-24",
-      "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/this-gta-6-glitch-almost-ruined-the-games-most-iconic-scene/",
-      "category": "Últimas noticias",
-      "verificationType": "Medio especializado"
-    },
-    {
-      "id": "news-gta-6-online-could-be-bigger-than-fortnite-bank-",
-      "title": "GTA 6 Online Could Be Bigger Than Fortnite, Bank Of America Stock Analyst Says",
-      "summary": "Rockstar Games and parent company Take-Two are riding high currently from the success of Grand Theft Auto 6 with a reported 45 million copies sold and $4 billion in revenue already , but this could just the beginning...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA6Online.png?w=300",
-      "publishedAt": "2026-11-23",
-      "verifiedAt": "2026-11-24",
-      "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/gta-6-online-could-be-bigger-than-fortnite-bank-of-america-stock-analyst-says/",
-      "category": "Últimas noticias",
-      "verificationType": "Medio especializado"
-    },
-    {
-      "id": "news-gta-6-s-donnie-actor-underwent-brain-surgery-whi",
-      "title": "GTA 6’s Donnie Actor Underwent Brain Surgery While He Was Awake And Playing Guitar",
-      "summary": "Grand Theft Auto 6 features a big cast of characters with fascinating, memorable storylines, and one such character is the drug-smuggler Donnie . He's played by actor Brad Carter, and he has a captivating life story...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/Vice_City_13_042520.jpg?w=300",
-      "publishedAt": "2026-11-23",
-      "verifiedAt": "2026-11-24",
-      "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/gta-6s-donnie-actor-underwent-brain-surgery-while-he-was-awake-and-playing-guitar/",
-      "category": "Últimas noticias",
-      "verificationType": "Medio especializado"
     },
     {
       "id": "news-official-playstation-podcast-episode-553-peak-ga",
@@ -170,18 +182,6 @@
       "sourceName": "PlayStation.Blog Oficial",
       "sourceUrl": "https://blog.playstation.com/2026/11/20/share-of-the-week-texture/",
       "category": "Anuncios oficiales",
-      "verificationType": "Oficial"
-    },
-    {
-      "id": "news-next-week-on-xbox-new-games-for-november-23-to-2",
-      "title": "Next Week on XBOX: New Games for November 23 to 27",
-      "summary": "Welcome to Next Week on XBOX! In this weekly feature we cover all the games coming soon to XBOX Series X|S, XBOX One, XBOX on PC, and Game Pass! Get more details on these upcoming games below and click their profiles...",
-      "image": "https://store-images.s-microsoft.com/image/apps.58110.14459635843956058.988466ac-b926-46d5-b655-b4d8a3290cd5.7182e8e4-d2fe-4022-b5f5-5da35a78d236?w=400&#038;h=600",
-      "publishedAt": "2026-11-20",
-      "verifiedAt": "2026-11-24",
-      "sourceName": "Xbox Wire Oficial",
-      "sourceUrl": "https://news.xbox.com/en-us/2026/11/20/next-week-on-xbox-new-games-for-november-23-to-27/",
-      "category": "Consolas y plataformas",
       "verificationType": "Oficial"
     }
   ]
