@@ -197,7 +197,8 @@
           <a href="#catalogo" data-mobile-nav="clasico">Clásicos y Xbox 360</a>
           <a href="#noticias" data-mobile-close>Noticias y novedades</a>
           <a href="#trailers" data-mobile-close>Tráilers oficiales</a>
-          <a href="#contacto" data-mobile-close>Contacto y showroom</a>
+          <a href="#contacto" data-mobile-close>Contacto y PQRS</a>
+          <a href="legal/terminos-y-condiciones.html" data-mobile-close>Centro legal Colombia</a>
         </nav>
 
         <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
@@ -219,6 +220,75 @@
     </div>
 
     <main id="mainContent">
+      <!-- ====================================================================
+           BANNER PRINCIPAL DE NOTICIAS — JUEGO DEL MES: GRAND THEFT AUTO VI
+           ==================================================================== -->
+      <section class="gotm-banner" id="newsBanner" aria-label="Banner de noticias y Juego del Mes">
+        <div class="container">
+          <div class="gotm-card" id="gotmBannerCard">
+            <div>
+              <div class="gotm-kicker-row">
+                <span class="gotm-pill" id="gotmBadge">JUEGO DEL MES · NOVIEMBRE 2026</span>
+                <span class="gotm-verified-pill" id="gotmVerifiedMeta">Anuncio oficial · Verificado 2026-11-24</span>
+              </div>
+
+              <h2 class="gotm-title" id="gotmTitle">
+                Grand Theft Auto VI ya disponible en PS5 y Xbox Series X|S
+              </h2>
+
+              <p class="gotm-summary" id="gotmSummary">
+                Rockstar Games estrenó oficialmente Grand Theft Auto VI el 19 de noviembre de 2026
+                en PlayStation 5 y Xbox Series X|S. La aventura en el estado de Leonida y Vice City
+                protagonizada por Jason y Lucia debutó con aclamación histórica de la crítica;
+                Rockstar aún no ha anunciado fecha oficial para PC.
+              </p>
+
+              <div class="gotm-facts">
+                <span class="meta-tag">Lanzamiento: 19 nov 2026</span>
+                <span class="meta-tag">PS5 · Xbox Series X|S</span>
+                <span class="meta-tag">PC: sin fecha oficial</span>
+                <span class="meta-tag" style="color: var(--accent)">Solo envíos y pagos en Colombia</span>
+              </div>
+
+              <div class="gotm-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="btnGotmOpenGame" data-open-detail="grand-theft-auto-vi">
+                  Ver ficha y caja 3D →
+                </button>
+                <a href="#noticias" class="btn btn-secondary btn-sm">
+                  Todas las noticias verificadas
+                </a>
+                <a
+                  href="https://www.rockstargames.com/VI"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-ghost btn-sm"
+                  id="gotmSourceLink"
+                >
+                  Fuente oficial Rockstar ↗
+                </a>
+              </div>
+            </div>
+
+            <div class="gotm-media">
+              <img
+                id="gotmImage"
+                src="https://media-rockstargames-com.akamaized.net/tina-uploads/posts/5171972o3ak5oa/837b1fbc8f96dfa70c1aad939546cdbd85a32527.jpg"
+                alt="Arte oficial de Grand Theft Auto VI — Juego del Mes"
+                onerror="this.onerror=null;this.src='assets/images/hero_editorial.webp'"
+              />
+              <span class="gotm-media-caption" id="gotmMediaCaption">
+                Arte oficial · Rockstar Games
+              </span>
+            </div>
+          </div>
+
+          <div class="gotm-headlines-strip" id="gotmHeadlinesStrip" aria-label="Titulares verificados recientes">
+            <span class="gotm-strip-label">Últimas verificadas:</span>
+            <a href="#noticias" class="gotm-headline-chip">Cargando titulares oficiales de PlayStation, Xbox y Nintendo...</a>
+          </div>
+        </div>
+      </section>
+
       <!-- ====================================================================
            VITRINA AURORA 3D (CARÁTULAS REALES, CONTRAPORTADA, BISAGRA Y DISCO)
            ==================================================================== -->
@@ -510,27 +580,32 @@
       </section>
 
       <!-- ====================================================================
-           NOTICIAS Y NOVEDADES DEL MUNDO VIDEOJUEGOS
+           NOTICIAS VERIFICADAS DEL MUNDO VIDEOJUEGOS (FEEDS OFICIALES RSS)
            ==================================================================== -->
       <section class="section surface-band" id="noticias">
         <div class="container">
           <div class="section-header">
             <div>
-              <p class="section-eyebrow">Actualidad gamer</p>
-              <h2 class="section-title">Noticias y novedades</h2>
+              <p class="section-eyebrow">Actualidad gamer verificada · Fuentes oficiales</p>
+              <h2 class="section-title">Noticias y novedades reales</h2>
               <p class="section-subtitle">
-                Parches recientes, anuncios de expansiones, cultura retro y guías de ofertas
-                curadas por nuestro equipo editorial.
+                Titulares sincronizados automáticamente desde PlayStation.Blog Oficial, Xbox Wire
+                Oficial, Nintendo Life y GameSpot con enlace directo a la fuente y fecha de verificación.
               </p>
             </div>
+          </div>
+
+          <div class="news-status-bar" id="newsStatusBar">
+            <span>Sincronizando fuentes oficiales de videojuegos...</span>
+            <span>Actualización automática cada 12 horas vía GitHub Actions</span>
           </div>
 
           <div class="news-filters" id="newsFilters" role="group" aria-label="Filtrar noticias por categoría">
             <button type="button" class="chip active" data-news-cat="all">Todas</button>
             <button type="button" class="chip" data-news-cat="Lanzamientos">Lanzamientos</button>
-            <button type="button" class="chip" data-news-cat="Novedades">Novedades</button>
-            <button type="button" class="chip" data-news-cat="Retro">Retro</button>
-            <button type="button" class="chip" data-news-cat="Ofertas">Ofertas</button>
+            <button type="button" class="chip" data-news-cat="Consolas y plataformas">Consolas y plataformas</button>
+            <button type="button" class="chip" data-news-cat="Actualizaciones">Actualizaciones</button>
+            <button type="button" class="chip" data-news-cat="Industria y prensa">Industria y prensa</button>
           </div>
 
           <div class="news-grid" id="newsGrid"></div>
@@ -547,8 +622,7 @@
               <p class="section-eyebrow">Multimedia en vivo</p>
               <h2 class="section-title">Tráilers oficiales destacados</h2>
               <p class="section-subtitle">
-                Un vistazo en movimiento a tres generaciones: estreno 2025, obra moderna y clásico
-                legendario de la era Xbox 360.
+                Vistazo oficial en video a lanzamientos insignia y referentes de la industria.
               </p>
             </div>
           </div>
@@ -558,17 +632,17 @@
       </section>
 
       <!-- ====================================================================
-           CONTACTO FUNCIONAL Y MAPA INTERACTIVO
+           CONTACTO DIGITAL Y PQRS (OPERACIÓN 100% EN LÍNEA — SOLO COLOMBIA)
            ==================================================================== -->
       <section class="section surface-band" id="contacto">
         <div class="container">
           <div class="section-header">
             <div>
-              <p class="section-eyebrow">Soporte y showroom</p>
-              <h2 class="section-title">Contáctanos o sugiere un juego</h2>
+              <p class="section-eyebrow">Soporte digital · Solo Colombia</p>
+              <h2 class="section-title">Contáctanos, PQRS o sugiere un juego</h2>
               <p class="section-subtitle">
-                ¿Buscas una edición física coleccionista, soporte con tu clave o quieres proponer un
-                clásico? Escríbenos directamente.
+                Operamos de forma 100% digital en Colombia (sin punto físico presencial). Escríbenos
+                para soporte de pedidos, consulta de stock, derecho de retracto o sugerencias de catálogo.
               </p>
             </div>
           </div>
@@ -591,28 +665,33 @@
                     <label for="contactTopic">Motivo del mensaje</label>
                     <select id="contactTopic" name="topic" class="select">
                       <option value="Soporte de compra y claves">Soporte de compra y claves digitales</option>
+                      <option value="PQRS / Garantía / Derecho de retracto">PQRS / Garantía / Derecho de retracto (Ley 1480)</option>
                       <option value="Sugerir un juego clásico o moderno">Sugerir un juego clásico o moderno</option>
                       <option value="Preventas y cajas físicas coleccionistas">Preventas y cajas físicas coleccionistas</option>
-                      <option value="Alianzas comerciales y prensa">Alianzas comerciales y prensa</option>
+                      <option value="Protección de datos (Ley 1581)">Derechos de datos personales (Ley 1581)</option>
                     </select>
                   </div>
 
                   <div class="field field-full">
                     <label for="contactMessage">Mensaje</label>
-                    <textarea id="contactMessage" name="message" class="textarea" placeholder="Cuéntanos qué necesitas o qué título recomiendas sumar al catálogo..." required></textarea>
+                    <textarea id="contactMessage" name="message" class="textarea" placeholder="Cuéntanos qué necesitas, tu número de pedido o qué título recomiendas sumar al catálogo..." required></textarea>
                   </div>
 
                   <div class="field field-full">
                     <label class="checkbox-row">
                       <input type="checkbox" id="contactConsent" required />
-                      <span>Autorizo el uso de mis datos únicamente para responder esta solicitud de contacto.</span>
+                      <span>
+                        Autorizo el tratamiento de mis datos conforme a la
+                        <a href="legal/politica-de-privacidad.html" class="link-btn">Política de Privacidad (Ley 1581/2012)</a>
+                        únicamente para atender esta solicitud.
+                      </span>
                     </label>
                   </div>
 
                   <div class="field field-full" style="display: flex; flex-wrap: wrap; gap: 10px">
                     <button type="submit" class="btn btn-primary">Enviar mensaje</button>
-                    <a href="mailto:soporte@kronogames.co?subject=Consulta%20desde%20Krono" class="btn btn-secondary">
-                      Correo directo
+                    <a href="legal/contacto-y-reclamaciones.html" class="btn btn-secondary">
+                      Canal formal PQRS
                     </a>
                   </div>
                 </div>
@@ -623,43 +702,55 @@
 
             <div class="card-panel">
               <h3 style="margin: 0 0 12px; font-size: 16.5px; letter-spacing: -0.02em">
-                Showroom físico y soporte
+                Operación 100% digital en Colombia
               </h3>
-              <iframe
-                class="map-frame"
-                title="Ubicación del Showroom Krono en Bogotá, Colombia"
-                loading="lazy"
-                referrerpolicy="no-referrer-when-downgrade"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=-74.0615%2C4.6615%2C-74.0465%2C4.6725&amp;layer=mapnik&amp;marker=4.6670%2C-74.0540"
-              ></iframe>
+
+              <div class="digital-ops-banner">
+                <strong style="display: block; font-size: 13.5px; margin-bottom: 4px; color: var(--accent)">
+                  Tienda exclusivamente en línea · Cobertura nacional Colombia
+                </strong>
+                <p style="margin: 0; font-size: 13px; line-height: 1.55; color: var(--ink-secondary)">
+                  No contamos con tienda física ni dirección presencial de atención al público.
+                  Todas las compras, pagos en pesos colombianos (COP) y envíos operan únicamente
+                  dentro de Colombia.
+                </p>
+              </div>
 
               <ul class="contact-list">
                 <li>
-                  <span>Showroom presencial</span>
-                  <strong>Calle 82 # 12-40, Bogotá, CO</strong>
+                  <span>Modalidad de operación</span>
+                  <strong>100% Online · Solo Colombia</strong>
                 </li>
                 <li>
-                  <span>Horario de atención</span>
-                  <strong>Lun – Sáb · 9:00 a.m. – 7:00 p.m.</strong>
+                  <span>Horario de soporte digital</span>
+                  <strong>Lun – Sáb · 9:00 a.m. – 7:00 p.m. (COT)</strong>
                 </li>
                 <li>
-                  <span>Correo de soporte</span>
-                  <a href="mailto:soporte@kronogames.co">soporte@kronogames.co</a>
+                  <span>Medios de pago soportados</span>
+                  <strong>Visa, Mastercard, PayPal, Nequi, Corresponsales</strong>
                 </li>
                 <li>
-                  <span>Garantía Krono</span>
-                  <strong>Clave inmediata · Devolución 14 días</strong>
+                  <span>Protección al consumidor</span>
+                  <strong>Ley 1480/2011 · Ley 2439/2024 · Ley 1581/2012</strong>
                 </li>
               </ul>
 
-              <a
-                href="https://www.openstreetmap.org/?mlat=4.6670&mlon=-74.0540#map=16/4.6670/-74.0540"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="btn btn-secondary btn-full btn-sm"
-              >
-                Abrir ubicación en el mapa ↗
-              </a>
+              <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px">
+                <a
+                  href="https://www.sic.gov.co/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-secondary btn-full btn-sm"
+                >
+                  Superintendencia de Industria y Comercio (SIC) ↗
+                </a>
+                <a
+                  href="legal/derecho-de-retracto-y-reversion.html"
+                  class="btn btn-ghost btn-full btn-sm"
+                >
+                  Consultar Derecho de Retracto y Reversión
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -667,38 +758,59 @@
     </main>
 
     <!-- ====================================================================
-         FOOTER
+         FOOTER Y CENTRO LEGAL COLOMBIA
          ==================================================================== -->
     <footer class="site-footer">
-      <div class="container footer-grid">
-        <div>
-          <img
-            src="assets/brand/krono-logo-primary.svg"
-            alt="KRONO Game Store & Archive"
-            class="brand-logo-dark"
-            style="height: 44px; width: auto; margin-bottom: 8px"
-          />
-          <img
-            src="assets/brand/krono-logo-light.svg"
-            alt="KRONO Game Store & Archive"
-            class="brand-logo-light"
-            style="height: 44px; width: auto; margin-bottom: 8px"
-          />
-          <p style="margin: 6px 0 0; font-size: 12.5px; color: var(--ink-muted)">
-            © 2026 KRONO Game Store — Identidad y catálogo en evolución hacia MVP comercial. Portadas oficiales propiedad de sus respectivos estudios y editores.
-          </p>
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <img
+              src="assets/brand/krono-logo-primary.svg"
+              alt="KRONO Game Store & Archive"
+              class="brand-logo-dark"
+              style="height: 44px; width: auto; margin-bottom: 8px"
+            />
+            <img
+              src="assets/brand/krono-logo-light.svg"
+              alt="KRONO Game Store & Archive"
+              class="brand-logo-light"
+              style="height: 44px; width: auto; margin-bottom: 8px"
+            />
+            <p style="margin: 6px 0 0; font-size: 12.5px; color: var(--ink-muted)">
+              © 2026 KRONO Game Store — Comercio electrónico 100% digital para Colombia (razón social y NIT en proceso de formalización antes de cobros reales). Portadas oficiales propiedad de sus respectivos estudios y editores.
+            </p>
+          </div>
+
+          <div class="footer-links">
+            <a href="#newsBanner">Juego del Mes</a>
+            <a href="#aurora">Aurora 3D</a>
+            <a href="#catalogo">Catálogo</a>
+            <a href="#noticias">Noticias</a>
+            <a href="#trailers">Tráilers</a>
+            <a href="#contacto">Contacto</a>
+            <a href="admin.html">Panel Admin</a>
+            <button type="button" id="btnFooterPrefs" class="link-btn" style="color: inherit; text-decoration: none; font-weight: 500">
+              Personalizar gustos
+            </button>
+          </div>
         </div>
 
-        <div class="footer-links">
-          <a href="#aurora">Aurora 3D</a>
-          <a href="#catalogo">Catálogo</a>
-          <a href="#noticias">Noticias</a>
-          <a href="#trailers">Tráilers</a>
-          <a href="#contacto">Contacto</a>
-          <button type="button" id="btnFooterPrefs" class="link-btn" style="color: inherit; text-decoration: none; font-weight: 500">
-            Personalizar gustos
-          </button>
-        </div>
+        <nav class="footer-legal-bar" aria-label="Documentos legales Colombia">
+          <a href="legal/terminos-y-condiciones.html">Términos y Condiciones</a>
+          <a href="legal/politica-de-privacidad.html">Privacidad (Ley 1581)</a>
+          <a href="legal/aviso-de-privacidad.html">Aviso de Privacidad</a>
+          <a href="legal/politica-de-cookies.html">Cookies</a>
+          <a href="legal/politica-de-envios.html">Envíos Colombia</a>
+          <a href="legal/politica-de-entregas-digitales.html">Entregas Digitales</a>
+          <a href="legal/politica-de-garantias-y-devoluciones.html">Garantías y Devoluciones</a>
+          <a href="legal/derecho-de-retracto-y-reversion.html">Retracto y Reversión</a>
+          <a href="legal/contacto-y-reclamaciones.html">PQRS y Reclamaciones</a>
+          <a href="legal/propiedad-intelectual.html">Propiedad Intelectual</a>
+          <a href="legal/informacion-comercial.html">Información Comercial</a>
+          <a href="https://www.sic.gov.co/" target="_blank" rel="noopener noreferrer" style="color: var(--accent); font-weight: 700">
+            SIC Colombia ↗
+          </a>
+        </nav>
       </div>
     </footer>
 
@@ -715,6 +827,15 @@
           <button type="button" class="icon-btn" data-close-modal="authModal" aria-label="Cerrar ventana">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
+        </div>
+
+        <div id="authMandatoryNotice" class="checkout-notice" hidden>
+          <strong>Inicio de sesión obligatorio para comprar:</strong> Inicia sesión o crea tu cuenta
+          para continuar al pago en Colombia y asociar tus pedidos y garantías a tu perfil.
+        </div>
+
+        <div id="authBackendNotice" class="field-hint" style="margin: 0 0 12px; padding: 8px 10px; border-radius: 6px; background: var(--surface-subtle); border: 1px solid var(--border)">
+          Modo vista previa local (sin credenciales Supabase configuradas). Configura <code>SUPABASE_URL</code> y <code>SUPABASE_ANON_KEY</code> en <code>js/config.js</code> para activar OAuth 2.0 y SMS reales.
         </div>
 
         <div id="authMainView">
@@ -771,10 +892,15 @@
               Iniciar sesión con correo
             </button>
 
-            <p style="margin: 2px 0 0; font-size: 13px; text-align: center; color: var(--ink-secondary)">
-              <span id="emailTogglePrompt">¿No tienes cuenta todavía?</span>
-              <button type="button" id="btnToggleAuthMode" class="link-btn">Crear cuenta</button>
-            </p>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12.5px; color: var(--ink-secondary)">
+              <button type="button" id="btnForgotPassword" class="link-btn" style="font-size: 12.5px">
+                ¿Olvidaste tu contraseña?
+              </button>
+              <span>
+                <span id="emailTogglePrompt">¿No tienes cuenta?</span>
+                <button type="button" id="btnToggleAuthMode" class="link-btn">Crear cuenta</button>
+              </span>
+            </div>
           </form>
 
           <form id="phoneAuthForm" hidden style="display: flex; flex-direction: column; gap: 13px">
@@ -926,6 +1052,176 @@
           </button>
         </div>
         <div id="newsModalContent"></div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL: CHECKOUT COLOMBIA (SESIÓN OBLIGATORIA + MÉTODOS DE PAGO)
+         ==================================================================== -->
+    <div id="checkoutModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="checkoutModalTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-lg" style="max-width: 720px">
+        <div class="modal-header">
+          <div>
+            <p class="detail-kicker" id="checkoutKicker">SOLO COLOMBIA (CO) · COMPRA CON SESIÓN INICIADA</p>
+            <h2 id="checkoutModalTitle" class="detail-title" style="font-size: 22px">Finalizar compra en Colombia</h2>
+          </div>
+          <button type="button" class="icon-btn" data-close-modal="checkoutModal" aria-label="Cerrar checkout">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div id="checkoutFormView">
+          <div class="checkout-notice" id="checkoutModeBanner">
+            <strong>Solo disponible en Colombia:</strong> Todos los valores se liquidan en pesos
+            colombianos (COP). Pasarela en <strong>modo sandbox / pendiente activación comercial Wompi &amp; PayPal</strong>
+            — no se realizará ningún débito real hasta configurar credenciales verificadas del comercio.
+          </div>
+
+          <form id="checkoutForm" novalidate>
+            <div class="form-grid" style="margin-bottom: 16px">
+              <div class="field">
+                <label for="chkCountry">País de operación</label>
+                <input type="text" id="chkCountry" class="input" value="Colombia (CO) — Único país habilitado" readonly />
+              </div>
+
+              <div class="field">
+                <label for="chkDocNumber">Cédula / Documento (CC, CE o NIT)</label>
+                <input type="text" id="chkDocNumber" class="input" placeholder="Ej. 1020304050" inputmode="numeric" required />
+              </div>
+
+              <div class="field">
+                <label for="chkPhone">Teléfono celular Colombia (+57)</label>
+                <input type="tel" id="chkPhone" class="input" placeholder="300 123 4567" inputmode="tel" required />
+              </div>
+
+              <div class="field">
+                <label for="chkDepartment">Departamento (Colombia)</label>
+                <select id="chkDepartment" class="select" required>
+                  <option value="">Selecciona departamento...</option>
+                  <option value="Bogotá D.C.">Bogotá D.C.</option>
+                  <option value="Antioquia">Antioquia</option>
+                  <option value="Valle del Cauca">Valle del Cauca</option>
+                  <option value="Atlántico">Atlántico</option>
+                  <option value="Cundinamarca">Cundinamarca</option>
+                  <option value="Santander">Santander</option>
+                  <option value="Bolívar">Bolívar</option>
+                  <option value="Risaralda">Risaralda</option>
+                  <option value="Caldas">Caldas</option>
+                  <option value="Tolima">Tolima</option>
+                  <option value="Huila">Huila</option>
+                  <option value="Meta">Meta</option>
+                  <option value="Norte de Santander">Norte de Santander</option>
+                  <option value="Nariño">Nariño</option>
+                  <option value="Boyacá">Boyacá</option>
+                  <option value="Cesar">Cesar</option>
+                  <option value="Córdoba">Córdoba</option>
+                  <option value="Magdalena">Magdalena</option>
+                  <option value="Quindío">Quindío</option>
+                  <option value="Cauca">Cauca</option>
+                  <option value="Sucre">Sucre</option>
+                  <option value="Casanare">Casanare</option>
+                  <option value="Otro departamento de Colombia">Otro departamento de Colombia</option>
+                </select>
+              </div>
+
+              <div class="field field-full">
+                <label for="chkCity">Ciudad / Municipio y nota de entrega</label>
+                <input type="text" id="chkCity" class="input" placeholder="Ej. Medellín · Entrega digital a mi correo o coordinación de envío físico nacional" required />
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom: 10px">
+              <label>Selecciona tu método de pago en Colombia</label>
+              <div class="payment-methods-grid" id="paymentMethodsGrid" role="radiogroup" aria-label="Métodos de pago aceptados en Colombia">
+                <label class="payment-option selected" data-pay-card="visa">
+                  <input type="radio" name="paymentMethod" value="visa" checked />
+                  <strong><span>Visa</span><span>Débito / Crédito</span></strong>
+                  <span>Procesamiento tokenizado vía pasarela Wompi Colombia.</span>
+                </label>
+
+                <label class="payment-option" data-pay-card="mastercard">
+                  <input type="radio" name="paymentMethod" value="mastercard" />
+                  <strong><span>Mastercard</span><span>Débito / Crédito</span></strong>
+                  <span>Cuotas o débito directo con protección 3DS.</span>
+                </label>
+
+                <label class="payment-option" data-pay-card="paypal">
+                  <input type="radio" name="paymentMethod" value="paypal" />
+                  <strong><span>PayPal</span><span>Cuenta / Tarjeta</span></strong>
+                  <span>Redirección segura al checkout oficial de PayPal.</span>
+                </label>
+
+                <label class="payment-option" data-pay-card="nequi">
+                  <input type="radio" name="paymentMethod" value="nequi" />
+                  <strong><span>Nequi</span><span>Notificación push</span></strong>
+                  <span>Aprueba el pago directamente desde tu app Nequi Colombia.</span>
+                </label>
+
+                <label class="payment-option payment-option--wide" data-pay-card="corresponsal">
+                  <input type="radio" name="paymentMethod" value="corresponsal" />
+                  <strong><span>Pago en Corresponsales (Efectivo Colombia)</span><span>Genera código</span></strong>
+                  <span>Genera un código de convenio con vigencia de 48 horas para pagar en Efecty, Corresponsal Bancolombia o PuntoRed.</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Subpaneles dinámicos según método de pago -->
+            <div id="subpanelCard" class="payment-subpanel">
+              <p style="margin: 0; font-size: 12.5px; color: var(--ink-secondary)">
+                <strong>Seguridad PCI-DSS:</strong> Por tu seguridad, KRONO nunca solicita ni almacena
+                el número completo ni el CVV de tu tarjeta en este navegador. Al activar producción,
+                los datos de tarjeta se ingresan únicamente en el widget tokenizado de Wompi Colombia.
+              </p>
+            </div>
+
+            <div id="subpanelPaypal" class="payment-subpanel" hidden>
+              <p style="margin: 0; font-size: 12.5px; color: var(--ink-secondary)">
+                Serás dirigido al flujo de autorización de <strong>PayPal</strong> con conversión
+                verificable USD/COP. En modo sandbox se genera una orden pendiente sin cargo real.
+              </p>
+            </div>
+
+            <div id="subpanelNequi" class="payment-subpanel" hidden>
+              <div class="field">
+                <label for="chkNequiPhone">Número celular registrado en Nequi (+57)</label>
+                <input type="tel" id="chkNequiPhone" class="input" placeholder="Ej. 3001234567 (10 dígitos)" inputmode="numeric" maxlength="10" />
+                <span class="field-hint">Recibirás la notificación push en tu app Nequi una vez activada la pasarela Wompi.</span>
+              </div>
+            </div>
+
+            <div id="subpanelCorresponsal" class="payment-subpanel" hidden>
+              <div class="field">
+                <label for="chkCorresponsalNetwork">Elige la red de corresponsal en Colombia</label>
+                <select id="chkCorresponsalNetwork" class="select">
+                  <option value="Efecty">Efecty (Convenio nacional en efectivo)</option>
+                  <option value="Corresponsal Bancolombia">Corresponsal Bancolombia (Recaudo nacional)</option>
+                  <option value="PuntoRed">PuntoRed (Red de corresponsales Colombia)</option>
+                </select>
+                <span class="field-hint">Al confirmar generaremos tu código de pago único válido por 48 horas.</span>
+              </div>
+            </div>
+
+            <div id="checkoutSummaryBox" class="digital-key-card" style="margin-bottom: 14px"></div>
+
+            <label class="checkbox-row" style="margin-bottom: 14px">
+              <input type="checkbox" id="chkLegalConsent" required />
+              <span>
+                Acepto los <a href="legal/terminos-y-condiciones.html" target="_blank" class="link-btn">Términos y Condiciones</a>,
+                la <a href="legal/politica-de-privacidad.html" target="_blank" class="link-btn">Política de Privacidad (Ley 1581/2012)</a>
+                y reconozco el <a href="legal/derecho-de-retracto-y-reversion.html" target="_blank" class="link-btn">Derecho de Retracto y Reversión (Ley 1480/2011)</a>.
+              </span>
+            </label>
+
+            <div style="display: flex; flex-wrap: wrap; gap: 10px">
+              <button type="button" class="btn btn-secondary" data-close-modal="checkoutModal">Volver al carrito</button>
+              <button type="submit" id="btnConfirmCheckout" class="btn btn-primary" style="flex: 1">
+                Confirmar pedido en Colombia
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div id="checkoutResultView" hidden></div>
       </div>
     </div>
 

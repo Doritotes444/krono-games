@@ -2,10 +2,9 @@
  * KRONO — Componente Aurora 3D de Caja Física Interactiva (Fase 5)
  *
  * Comportamiento:
- * - Reposo: muestra la contraportada (claramente identificada cuando es reconstrucción editorial).
- * - Hover (escritorio) / Toque (móvil): gira suavemente en 3D a la portada frontal oficial.
- * - Retirar cursor: regresa suavemente a la contraportada (si la caja está cerrada).
- * - Clic sobre la caja: abre la caja 3D con bisagra lateral revelando la bandeja y el disco interior.
+ * - Reposo normal: muestra la portada frontal oficial completa (sin recortar).
+ * - Hover (escritorio) / Botón Reverso (móvil): gira suavemente en 3D a la contraportada.
+ * - Clic sobre la caja: abre la caja 3D con bisagra lateral revelando el folleto y el disco interior.
  * - Clic sobre el disco: anima la extracción e inserción del disco desde el eje central.
  */
 
@@ -36,18 +35,22 @@ export function renderAuroraCase(
   } = {}
 ) {
   const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.pc;
+  const rawShots = (game.screenshots || []).filter(Boolean);
   const shots =
-    game.screenshots && game.screenshots.length >= 2
-      ? game.screenshots
-      : [game.headerImg || game.cover, game.heroBg || game.cover];
+    rawShots.length >= 2
+      ? rawShots.slice(0, 2)
+      : [game.headerImg || rawShots[0] || game.cover, game.heroBg || rawShots[0] || game.cover];
 
-  const backLabel = game.officialBackCoverUrl
+  const hasOfficialBack = Boolean(game.officialBackCoverUrl);
+  const hasOfficialDisc = Boolean(game.officialDiscUrl);
+
+  const backLabel = hasOfficialBack
     ? 'CONTRAPORTADA OFICIAL'
-    : 'RECONSTRUCCIÓN EDITORIAL';
+    : 'FICHA TRASERA EDITORIAL';
 
-  const discNotice = game.officialDiscUrl
+  const discNotice = hasOfficialDisc
     ? `${theme.short} · DISCO OFICIAL`
-    : `VISTA PREVIA KRONO · ${theme.short}`;
+    : `${theme.short} · DISCO DE COLECCIÓN`;
 
   const stateClasses = [
     'aurora-case',
@@ -58,6 +61,80 @@ export function renderAuroraCase(
   ]
     .filter(Boolean)
     .join(' ');
+
+  const discInnerHtml = hasOfficialDisc
+    ? `
+      <img
+        class="tray-disc__art tray-disc__art--official"
+        src="${esc(game.officialDiscUrl)}"
+        alt="Disco oficial de ${esc(game.title)}"
+        ${lazy ? 'loading="lazy"' : ''}
+        onerror="this.onerror=null;this.src='${esc(game.fallbackCover)}'"
+      />
+      <span class="tray-disc__sheen" aria-hidden="true"></span>
+      <span class="tray-disc__hub" aria-hidden="true"></span>
+    `
+    : `
+      <span class="tray-disc__surface" aria-hidden="true"></span>
+      <span class="tray-disc__ring" aria-hidden="true"></span>
+      <span class="tray-disc__title">${esc(game.title)}</span>
+      <span class="tray-disc__meta">${esc(game.year)} · ${esc(game.serial)}</span>
+      <span class="tray-disc__sheen" aria-hidden="true"></span>
+      <span class="tray-disc__band">${esc(discNotice)}</span>
+      <span class="tray-disc__hub" aria-hidden="true"></span>
+    `;
+
+  const backBodyHtml = hasOfficialBack
+    ? `
+      <div class="case-artwork case-artwork--back-official">
+        <img
+          src="${esc(game.officialBackCoverUrl)}"
+          alt="Contraportada oficial de ${esc(game.title)}"
+          loading="lazy"
+          onerror="this.onerror=null;this.src='${esc(game.fallbackCover)}'"
+        />
+      </div>
+    `
+    : `
+      <div class="case-back-inner">
+        <p class="back-tagline">${esc(game.backTagline)}</p>
+
+        <div class="back-shots">
+          <img
+            src="${esc(shots[0])}"
+            alt="Captura oficial 1 de ${esc(game.title)}"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='${esc(game.fallbackCover)}'"
+          />
+          <img
+            src="${esc(shots[1])}"
+            alt="Captura oficial 2 de ${esc(game.title)}"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='${esc(game.fallbackCover)}'"
+          />
+        </div>
+
+        <p class="back-synopsis">${esc(game.synopsis)}</p>
+
+        <div class="back-specs-grid">
+          <div><span>Jugadores</span>${esc(game.players)}</div>
+          <div><span>Video</span>${esc(game.resolution)}</div>
+          <div><span>Espacio</span>${esc(game.storage)}</div>
+          <div><span>Idiomas</span>${esc(game.languages)}</div>
+        </div>
+
+        <div class="back-footer">
+          <div class="esrb-box" title="Clasificación ${esc(game.esrbText)}">
+            <span>ESRB</span>
+            <strong>${esc(game.esrb)}</strong>
+          </div>
+          <div class="barcode-box">
+            <div class="barcode-stripes" aria-hidden="true"></div>
+            <span class="barcode-num">${esc(game.barcode)}</span>
+          </div>
+        </div>
+      </div>
+    `;
 
   return `
     <div
@@ -90,16 +167,7 @@ export function renderAuroraCase(
               title="${discExtracted ? 'Clic para insertar el disco' : 'Clic para extraer el disco'}"
             >
               <span class="tray-disc__rotor">
-                <img
-                  class="tray-disc__art"
-                  src="${esc(game.officialDiscUrl || game.cover)}"
-                  alt=""
-                  ${lazy ? 'loading="lazy"' : ''}
-                  onerror="this.onerror=null;this.src='${esc(game.fallbackCover)}'"
-                />
-                <span class="tray-disc__sheen" aria-hidden="true"></span>
-                <span class="tray-disc__band">${esc(discNotice)}</span>
-                <span class="tray-disc__hub" aria-hidden="true"></span>
+                ${discInnerHtml}
               </span>
             </button>
           </div>
@@ -111,7 +179,7 @@ export function renderAuroraCase(
 
         <!-- TAPA FRONTAL CON BISAGRA IZQUIERDA (incluye interior del folleto al abrirse) -->
         <div class="aurora-case__lid">
-          <!-- Cara exterior de la tapa: PORTADA FRONTAL -->
+          <!-- Cara exterior de la tapa: PORTADA FRONTAL COMPLETA SIN RECORTE -->
           <div class="aurora-case__face aurora-case__front">
             <div class="case-banner">
               <span>${esc(theme.label)}</span>
@@ -140,51 +208,14 @@ export function renderAuroraCase(
           </div>
         </div>
 
-        <!-- CARA TRASERA EXTERIOR: CONTRAPORTADA (estado por defecto en reposo) -->
+        <!-- CARA TRASERA EXTERIOR: CONTRAPORTADA (visible al pasar el mouse o fijar reverso) -->
         <div class="aurora-case__face aurora-case__back">
           <div class="case-banner">
             <span>${esc(theme.short)} · ${esc(game.year)}</span>
             <span class="back-source-badge">${esc(backLabel)}</span>
           </div>
 
-          <div class="case-back-inner">
-            <p class="back-tagline">${esc(game.backTagline)}</p>
-
-            <div class="back-shots">
-              <img
-                src="${esc(shots[0])}"
-                alt="Captura oficial 1 de ${esc(game.title)}"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='${esc(game.fallbackCover)}'"
-              />
-              <img
-                src="${esc(shots[1])}"
-                alt="Captura oficial 2 de ${esc(game.title)}"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='${esc(game.fallbackCover)}'"
-              />
-            </div>
-
-            <p class="back-synopsis">${esc(game.synopsis)}</p>
-
-            <div class="back-specs-grid">
-              <div><span>Jugadores</span>${esc(game.players)}</div>
-              <div><span>Video</span>${esc(game.resolution)}</div>
-              <div><span>Espacio</span>${esc(game.storage)}</div>
-              <div><span>Idiomas</span>${esc(game.languages)}</div>
-            </div>
-
-            <div class="back-footer">
-              <div class="esrb-box" title="Clasificación ${esc(game.esrbText)}">
-                <span>ESRB</span>
-                <strong>${esc(game.esrb)}</strong>
-              </div>
-              <div class="barcode-box">
-                <div class="barcode-stripes" aria-hidden="true"></div>
-                <span class="barcode-num">${esc(game.barcode)}</span>
-              </div>
-            </div>
-          </div>
+          ${backBodyHtml}
 
           <div class="case-gloss" aria-hidden="true"></div>
         </div>

@@ -3,10 +3,9 @@ import {
   DEMO_SOCIAL_ACCOUNTS,
   ERAS,
   GAMES as FALLBACK_GAMES,
-  NEWS_ITEMS,
+  NEWS_ITEMS as FALLBACK_NEWS,
   PROMO_CODES,
-  TASTE_PRESETS,
-  USD_TO_COP
+  TASTE_PRESETS
 } from './data.js';
 import {
   renderAuroraCase,
@@ -25,6 +24,17 @@ import {
   loadCatalog,
   pushSearchHistory
 } from './services/catalog-service.js';
+import { loadVerifiedFxRate } from './services/fx-service.js';
+import {
+  getSupabaseClient,
+  isSupabaseConfigured,
+  requestPasswordReset,
+  sendPhoneOtp,
+  signInWithEmailPassword,
+  signInWithOAuthProvider,
+  signUpWithEmailPassword,
+  verifyPhoneOtp
+} from './services/supabase-client.js';
 
 const STORAGE_KEY = 'krono_store_state_v2';
 const BASE_TITLE = 'KRONO — Tienda Especializada de Videojuegos, Cajas 3D y Noticias';
@@ -44,6 +54,7 @@ const defaultState = {
   cart: [],
   promoCode: null,
   library: [],
+  orders: [],
   recentlyViewed: []
 };
 
@@ -51,6 +62,19 @@ let state = loadState();
 let catalogGames = FALLBACK_GAMES;
 let catalogMeta = { total: FALLBACK_GAMES.length, lastUpdated: '2026-11-24', sources: [] };
 let featuredGames = FALLBACK_GAMES.slice(0, 12);
+
+let fxInfo = {
+  rate: KRONO_CONFIG.currency.fallbackUsdToCop,
+  source: KRONO_CONFIG.currency.rateSource,
+  updatedAt: KRONO_CONFIG.currency.rateUpdatedAt,
+  verifiedLive: false
+};
+
+let verifiedNewsData = {
+  meta: { verifiedDate: '2026-11-24', totalArticles: 0, feeds: [], cachedFallback: false },
+  gameOfTheMonth: null,
+  articles: []
+};
 
 const defaultFilters = {
   section: 'todos',
@@ -77,6 +101,7 @@ let authMode = 'login';
 let pendingSocialProvider = null;
 let generatedOtp = null;
 let pendingPhoneFormatted = '';
+let resumeCheckoutAfterAuth = false;
 let draftPrefs = clonePrefs(state.prefs);
 
 /* ==========================================================================
@@ -90,6 +115,7 @@ function loadState() {
     return {
       ...structuredClone(defaultState),
       ...parsed,
+      orders: Array.isArray(parsed.orders) ? parsed.orders : [],
       prefs: { ...structuredClone(defaultState.prefs), ...(parsed.prefs || {}) }
     };
   } catch {
@@ -124,13 +150,21 @@ function findGameById(id) {
   return catalogGames.find((g) => g.id === id || g.slug === id);
 }
 
+function toCopAmount(usdAmount) {
+  return Math.round((Number(usdAmount) * fxInfo.rate) / 100) * 100;
+}
+
+function formatCopExact(usdAmount) {
+  if (Number(usdAmount) === 0) return '$0 COP';
+  return `$${toCopAmount(usdAmount).toLocaleString('es-CO')} COP`;
+}
+
 function formatPrice(usdAmount) {
   if (Number(usdAmount) === 0) return 'Gratis';
   if (state.currency === 'USD') {
     return `$${Number(usdAmount).toFixed(2)} USD`;
   }
-  const cop = Math.round((Number(usdAmount) * USD_TO_COP) / 100) * 100;
-  return `$${cop.toLocaleString('es-CO')} COP`;
+  return formatCopExact(usdAmount);
 }
 
 function getInitials(name) {
@@ -315,18 +349,24 @@ function stepCoverflow(delta) {
 /* ==========================================================================
    Header, Personalización y Contadores del Catálogo de 500 Juegos
    ========================================================================== */
+function setElHidden(el, isHidden) {
+  if (!el) return;
+  if (isHidden) el.setAttribute('hidden', '');
+  else el.removeAttribute('hidden');
+}
+
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', state.theme);
   const sun = document.getElementById('iconSun');
   const moon = document.getElementById('iconMoon');
   const metaTheme = document.querySelector('meta[name="theme-color"]');
   if (state.theme === 'dark') {
-    sun.hidden = false;
-    moon.hidden = true;
+    setElHidden(sun, false);
+    setElHidden(moon, true);
     metaTheme?.setAttribute('content', '#0B0D11');
   } else {
-    sun.hidden = true;
-    moon.hidden = false;
+    setElHidden(sun, true);
+    setElHidden(moon, false);
     metaTheme?.setAttribute('content', '#F5F4F0');
   }
 }
@@ -354,13 +394,13 @@ function updateHeaderUI() {
 
   if (state.user) {
     avatar.textContent = state.user.initials;
-    avatar.hidden = false;
-    userIcon.hidden = true;
+    setElHidden(avatar, false);
+    setElHidden(userIcon, true);
     label.textContent = state.user.name.split(' ')[0];
     mobileAuthBtn.textContent = `Mi cuenta (${state.user.name.split(' ')[0]})`;
   } else {
-    avatar.hidden = true;
-    userIcon.hidden = false;
+    setElHidden(avatar, true);
+    setElHidden(userIcon, false);
     label.textContent = 'Iniciar sesión';
     mobileAuthBtn.textContent = 'Iniciar sesión o registrarme';
   }
@@ -738,65 +778,217 @@ function renderCatalog() {
 }
 
 /* ==========================================================================
-   Noticias y Tráilers
+   Noticias Verificadas (RSS Oficiales) + Banner Juego del Mes (GTA VI)
    ========================================================================== */
+async function loadVerifiedNews() {
+  try {
+    const resp = await fetch('data/news-verified.json', { cache: 'no-cache' });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (!Array.isArray(data?.articles) || data.articles.length === 0) {
+      throw new Error('Sin artículos en feed');
+    }
+    verifiedNewsData = {
+      meta: { ...data.meta, cachedFallback: false },
+      gameOfTheMonth: data.gameOfTheMonth || null,
+      articles: data.articles
+    };
+    try {
+      localStorage.setItem('krono_news_cache_v1', JSON.stringify(verifiedNewsData));
+    } catch {
+      // ignore
+    }
+  } catch {
+    let cached = null;
+    try {
+      const raw = localStorage.getItem('krono_news_cache_v1');
+      if (raw) cached = JSON.parse(raw);
+    } catch {
+      // ignore
+    }
+    if (cached?.articles?.length) {
+      verifiedNewsData = {
+        ...cached,
+        meta: { ...(cached.meta || {}), cachedFallback: true }
+      };
+    } else {
+      verifiedNewsData = {
+        meta: { verifiedDate: '2026-11-24', totalArticles: FALLBACK_NEWS.length, feeds: [], cachedFallback: true },
+        gameOfTheMonth: null,
+        articles: FALLBACK_NEWS.map((n) => ({
+          id: n.id,
+          title: n.title,
+          summary: n.excerpt,
+          image: n.image,
+          publishedAt: n.date,
+          verifiedAt: '2026-11-24',
+          sourceName: 'Archivo editorial KRONO (respaldo local)',
+          sourceUrl: 'https://doritotes444.github.io/krono-games/#noticias',
+          category: n.category,
+          verificationType: 'Medio especializado'
+        }))
+      };
+    }
+  }
+
+  renderGameOfTheMonthBanner();
+  renderNews();
+}
+
+function renderGameOfTheMonthBanner() {
+  const gotm = verifiedNewsData.gameOfTheMonth;
+  if (gotm) {
+    const setText = (id, txt) => {
+      const el = document.getElementById(id);
+      if (el && txt) el.textContent = txt;
+    };
+    setText('gotmBadge', gotm.badge);
+    setText('gotmVerifiedMeta', `${gotm.verificationType} · Verificado ${gotm.verifiedAt}`);
+    setText('gotmTitle', gotm.title);
+    setText('gotmSummary', gotm.summary);
+    setText('gotmMediaCaption', `Arte oficial · ${gotm.sourceName}`);
+
+    const img = document.getElementById('gotmImage');
+    if (img && gotm.image) img.src = gotm.image;
+
+    const srcLink = document.getElementById('gotmSourceLink');
+    if (srcLink && gotm.sourceUrl) srcLink.href = gotm.sourceUrl;
+
+    const openBtn = document.getElementById('btnGotmOpenGame');
+    if (openBtn && gotm.gameId) openBtn.dataset.openDetail = gotm.gameId;
+  }
+
+  const strip = document.getElementById('gotmHeadlinesStrip');
+  if (strip && verifiedNewsData.articles.length) {
+    const topItems = verifiedNewsData.articles.slice(0, 5);
+    strip.innerHTML = `
+      <span class="gotm-strip-label">Últimas verificadas:</span>
+      ${topItems
+        .map(
+          (a) => `
+        <button type="button" class="gotm-headline-chip" data-open-news="${escapeHtml(a.id)}" title="${escapeHtml(a.title)}">
+          <strong style="color: var(--accent)">${escapeHtml(a.sourceName.replace(' Oficial', ''))}:</strong>
+          <span>${escapeHtml(a.title)}</span>
+        </button>
+      `
+        )
+        .join('')}
+    `;
+  }
+}
+
 function renderNews() {
   const grid = document.getElementById('newsGrid');
+  const statusBar = document.getElementById('newsStatusBar');
+  const articles = verifiedNewsData.articles || [];
+
+  if (statusBar) {
+    const okSources = (verifiedNewsData.meta?.feeds || [])
+      .filter((f) => f.status === 'ok')
+      .map((f) => f.source)
+      .join(' · ');
+    statusBar.innerHTML = verifiedNewsData.meta?.cachedFallback
+      ? `<span>⚠ Mostrando última versión en caché verificada (${escapeHtml(verifiedNewsData.meta.verifiedDate)})</span><span>Reintento automático al recargar</span>`
+      : `<span>Fuentes activas: ${escapeHtml(okSources || 'PlayStation.Blog · Xbox Wire · Nintendo Life · GameSpot')}</span><span>Verificado: ${escapeHtml(verifiedNewsData.meta?.verifiedDate || '2026-11-24')} · ${articles.length} titulares reales</span>`;
+  }
+
   const filtered =
     newsCategory === 'all'
-      ? NEWS_ITEMS
-      : NEWS_ITEMS.filter((item) => item.category === newsCategory);
+      ? articles
+      : articles.filter((item) => item.category === newsCategory);
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <h3>Sin titulares en la categoría "${escapeHtml(newsCategory)}"</h3>
+        <p style="color: var(--ink-secondary); margin: 0">Prueba seleccionar "Todas" para ver los ${articles.length} titulares verificados.</p>
+      </div>
+    `;
+    return;
+  }
 
   grid.innerHTML = filtered
-    .map(
-      (item) => `
-      <article class="news-card" data-open-news="${item.id}" tabindex="0" role="button">
+    .map((item) => {
+      const isOfficial = String(item.verificationType || '').toLowerCase().includes('oficial');
+      const badgeCls = isOfficial ? 'verify-badge--oficial' : 'verify-badge--medio';
+      return `
+      <article class="news-card" data-open-news="${escapeHtml(item.id)}" tabindex="0" role="button">
         <div class="news-thumb">
-          <img src="${item.image}" alt="${escapeHtml(item.title)}" loading="lazy" />
+          <img
+            src="${escapeHtml(item.image || 'assets/images/hero_editorial.webp')}"
+            alt="${escapeHtml(item.title)}"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='assets/images/hero_editorial.webp'"
+          />
           <span class="news-cat">${escapeHtml(item.category)}</span>
         </div>
         <div class="news-body">
-          <div class="news-meta">${escapeHtml(item.date)} · Lectura ${escapeHtml(item.readTime)}</div>
+          <div class="news-meta" style="display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap">
+            <span>${escapeHtml(item.publishedAt)} · ${escapeHtml(item.sourceName)}</span>
+            <span class="verify-badge ${badgeCls}">${escapeHtml(item.verificationType)}</span>
+          </div>
           <h3 class="news-title">${escapeHtml(item.title)}</h3>
-          <p class="news-excerpt">${escapeHtml(item.excerpt)}</p>
-          <span class="news-read-more">Leer noticia completa →</span>
+          <p class="news-excerpt">${escapeHtml(item.summary)}</p>
+          <div class="news-source-footer">
+            <span class="news-read-more">Leer resumen →</span>
+            <a
+              href="${escapeHtml(item.sourceUrl)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="link-btn"
+              style="font-size: 12px"
+              onclick="event.stopPropagation()"
+            >
+              Fuente original ↗
+            </a>
+          </div>
         </div>
       </article>
-    `
-    )
+    `;
+    })
     .join('');
 }
 
 function openNewsModal(newsId) {
-  const item = NEWS_ITEMS.find((n) => n.id === newsId);
+  const item = (verifiedNewsData.articles || []).find((n) => n.id === newsId);
   if (!item) return;
 
-  const related = findGameById(item.relatedGameId);
-  document.getElementById('newsModalMeta').textContent = `${item.category} · ${item.date} · Lectura ${item.readTime}`;
+  const isGta = /grand theft auto|gta/i.test(`${item.title} ${item.summary}`);
+  const related = isGta ? findGameById('grand-theft-auto-vi') : null;
+
+  document.getElementById('newsModalMeta').textContent = `${item.category} · ${item.sourceName} · Publicado ${item.publishedAt} · Verificado ${item.verifiedAt}`;
   document.getElementById('newsModalTitle').textContent = item.title;
 
   document.getElementById('newsModalContent').innerHTML = `
     <img
-      src="${item.image}"
+      src="${escapeHtml(item.image || 'assets/images/hero_editorial.webp')}"
       alt="${escapeHtml(item.title)}"
-      style="width: 100%; border-radius: var(--radius-md); margin-bottom: 18px; border: 1px solid var(--border)"
+      style="width: 100%; max-height: 360px; object-fit: contain; background: #090c12; border-radius: var(--radius-md); margin-bottom: 18px; border: 1px solid var(--border)"
+      onerror="this.onerror=null;this.src='assets/images/hero_editorial.webp'"
     />
-    ${item.body
-      .map(
-        (p) =>
-          `<p style="margin: 0 0 14px; font-size: 14.5px; line-height: 1.65; color: var(--ink-secondary)">${escapeHtml(p)}</p>`
-      )
-      .join('')}
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px">
+      <span class="meta-tag">${escapeHtml(item.verificationType)}</span>
+      <span class="meta-tag">Fuente: ${escapeHtml(item.sourceName)}</span>
+      <span class="meta-tag">Verificado: ${escapeHtml(item.verifiedAt)}</span>
+    </div>
+    <p style="margin: 0 0 18px; font-size: 14.5px; line-height: 1.68; color: var(--ink-secondary)">
+      ${escapeHtml(item.summary)}
+    </p>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px">
+      <a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+        Leer artículo completo en ${escapeHtml(item.sourceName)} ↗
+      </a>
+    </div>
     ${
       related
         ? `
-      <div class="digital-key-card" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 18px">
+      <div class="digital-key-card" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 14px">
         <div>
-          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--accent); text-transform: uppercase">Juego relacionado</div>
+          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--accent); text-transform: uppercase">Juego relacionado en catálogo</div>
           <div style="font-weight: 700; font-size: 15px">${escapeHtml(related.title)} (${related.year})</div>
           <div style="font-size: 12.5px; color: var(--ink-secondary)">${formatPrice(related.priceUSD)} · Nota ${related.score}/100</div>
         </div>
-        <button type="button" class="btn btn-primary btn-sm" id="btnNewsOpenGame">
+        <button type="button" class="btn btn-secondary btn-sm" id="btnNewsOpenGame">
           Abrir ficha y caja 3D →
         </button>
       </div>
@@ -806,7 +998,7 @@ function openNewsModal(newsId) {
   `;
 
   if (related) {
-    document.getElementById('btnNewsOpenGame').addEventListener('click', () => {
+    document.getElementById('btnNewsOpenGame')?.addEventListener('click', () => {
       closeModal('newsModal');
       openGameDetail(related.id, { mode: 'front' });
     });
@@ -973,7 +1165,7 @@ function openGameDetail(gameId, { mode = 'front', pushRoute = true } = {}) {
     ? `<button type="button" class="btn btn-secondary btn-sm" id="btnDetailTrailer">▶ Tráiler oficial</button>`
     : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(game.title + ' official trailer')}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">▶ Buscar tráiler ↗</a>`;
 
-  const shots = (game.screenshots || []).slice(0, 2);
+  const shots = [...new Set((game.screenshots || []).filter(Boolean))].slice(0, 2);
 
   const content = document.getElementById('detailContent');
   content.innerHTML = `
@@ -1026,7 +1218,7 @@ function openGameDetail(gameId, { mode = 'front', pushRoute = true } = {}) {
 
         ${
           shots.length
-            ? `<div class="detail-gallery">
+            ? `<div class="detail-gallery" ${shots.length === 1 ? 'style="grid-template-columns: 1fr; max-width: 340px"' : ''}>
                 ${shots
                   .map(
                     (src, i) =>
@@ -1298,19 +1490,31 @@ function applyTastePreset(presetId) {
   renderCatalog();
 }
 
-function openAuthModal() {
+function openAuthModal({ requireForCheckout = false } = {}) {
   document.getElementById('authMainView').hidden = false;
   document.getElementById('authSocialView').hidden = true;
   document.getElementById('phoneStep1').hidden = false;
   document.getElementById('phoneStep2').hidden = true;
+
+  const mandatoryEl = document.getElementById('authMandatoryNotice');
+  if (mandatoryEl) mandatoryEl.hidden = !requireForCheckout;
+
+  const backendNotice = document.getElementById('authBackendNotice');
+  if (backendNotice) {
+    backendNotice.innerHTML = isSupabaseConfigured()
+      ? 'Autenticación real conectada a <strong>Supabase Auth</strong> (OAuth 2.0, Correo verificado y SMS).'
+      : 'Modo vista previa local (sin credenciales Supabase configuradas). Configura <code>SUPABASE_URL</code> y <code>SUPABASE_ANON_KEY</code> en <code>js/config.js</code> para activar OAuth 2.0 y SMS reales.';
+  }
+
   openModal('authModal');
 }
 
-function signInUser({ name, identifier, provider }) {
+function signInUser({ name, identifier, provider, realAuth = false }) {
   state.user = {
     name: name.trim(),
     identifier: identifier.trim(),
     provider,
+    realAuth,
     initials: getInitials(name)
   };
   saveState();
@@ -1319,10 +1523,22 @@ function signInUser({ name, identifier, provider }) {
   prefillContactIfLoggedIn();
   closeModal('authModal');
   showToast(`Sesión iniciada con ${provider}. ¡Bienvenido, ${state.user.name.split(' ')[0]}!`);
+
+  if (resumeCheckoutAfterAuth) {
+    resumeCheckoutAfterAuth = false;
+    if (state.cart.length > 0) {
+      openCheckoutModal();
+    }
+  }
 }
 
-function signOutUser() {
+async function signOutUser() {
+  if (isSupabaseConfigured()) {
+    const sb = await getSupabaseClient();
+    await sb?.auth?.signOut().catch(() => {});
+  }
   state.user = null;
+  resumeCheckoutAfterAuth = false;
   saveState();
   updateHeaderUI();
   renderPersonalizeRibbon();
@@ -1330,13 +1546,18 @@ function signOutUser() {
   showToast('Has cerrado sesión correctamente.');
 }
 
-function startSocialAuth(providerKey) {
+async function startSocialAuth(providerKey) {
+  if (isSupabaseConfigured()) {
+    const { error } = await signInWithOAuthProvider(providerKey);
+    if (error) showToast(error.message);
+    return;
+  }
   const cfg = DEMO_SOCIAL_ACCOUNTS[providerKey];
   if (!cfg) return;
   pendingSocialProvider = cfg;
   document.getElementById('authMainView').hidden = true;
   document.getElementById('authSocialView').hidden = false;
-  document.getElementById('socialProviderPill').textContent = cfg.provider;
+  document.getElementById('socialProviderPill').textContent = `${cfg.provider} · Vista previa`;
   document.getElementById('socialConfirmHeading').textContent = `Autorizar acceso con ${cfg.provider}`;
   document.getElementById('socialNameInput').value = cfg.defaultName;
   document.getElementById('socialHandleInput').value = cfg.defaultHandle;
@@ -1358,8 +1579,8 @@ function toggleEmailAuthMode() {
     ? 'Crear cuenta con correo'
     : 'Iniciar sesión con correo';
   document.getElementById('emailTogglePrompt').textContent = isRegister
-    ? '¿Ya tienes cuenta en Krono?'
-    : '¿No tienes cuenta todavía?';
+    ? '¿Ya tienes cuenta?'
+    : '¿No tienes cuenta?';
   document.getElementById('btnToggleAuthMode').textContent = isRegister
     ? 'Iniciar sesión'
     : 'Crear cuenta';
@@ -1406,6 +1627,24 @@ function updateCartQty(gameId, delta) {
   renderCartDrawer();
 }
 
+function getCartTotals() {
+  let subtotalUSD = 0;
+  let itemCount = 0;
+  const items = [];
+  state.cart.forEach((entry) => {
+    const game = findGameById(entry.id);
+    if (!game) return;
+    subtotalUSD += game.priceUSD * entry.qty;
+    itemCount += entry.qty;
+    items.push({ game, qty: entry.qty });
+  });
+  const promo = state.promoCode ? PROMO_CODES[state.promoCode] : null;
+  const discountUSD = promo ? subtotalUSD * (promo.percent / 100) : 0;
+  const totalUSD = Math.max(0, subtotalUSD - discountUSD);
+  const totalCOP = toCopAmount(totalUSD);
+  return { items, itemCount, subtotalUSD, promo, discountUSD, totalUSD, totalCOP };
+}
+
 function openCart() {
   renderCartDrawer();
   openDrawer('cartDrawer');
@@ -1420,7 +1659,7 @@ function renderCartDrawer() {
       <div style="text-align: center; padding: 48px 12px">
         <p style="font-size: 16px; font-weight: 700; margin: 0 0 8px">Tu carrito está vacío</p>
         <p style="font-size: 13.5px; color: var(--ink-secondary); margin: 0 0 18px">
-          Explora los 500 videojuegos verificados y arma tu pedido o lista de consulta.
+          Explora los 500 videojuegos verificados y arma tu pedido para Colombia.
         </p>
         <button type="button" class="btn btn-primary btn-sm" id="btnCartExplore">Ir al catálogo</button>
       </div>
@@ -1433,13 +1672,11 @@ function renderCartDrawer() {
     return;
   }
 
-  let subtotalUSD = 0;
-  body.innerHTML = state.cart
-    .map((entry) => {
-      const game = findGameById(entry.id);
-      if (!game) return '';
-      subtotalUSD += game.priceUSD * entry.qty;
-      return `
+  const { items, subtotalUSD, promo, discountUSD, totalUSD } = getCartTotals();
+
+  body.innerHTML = items
+    .map(
+      ({ game, qty }) => `
         <div class="cart-item">
           <img src="${game.cover}" alt="${escapeHtml(game.title)}" onerror="this.onerror=null;this.src='${game.fallbackCover}'" />
           <div>
@@ -1447,39 +1684,38 @@ function renderCartDrawer() {
             <div class="cart-item-meta">${escapeHtml(game.format)} · ${escapeHtml(game.edition)}</div>
             <div class="qty-control">
               <button type="button" data-cart-qty="${game.id}" data-delta="-1" aria-label="Disminuir cantidad">−</button>
-              <span>${entry.qty}</span>
+              <span>${qty}</span>
               <button type="button" data-cart-qty="${game.id}" data-delta="1" aria-label="Aumentar cantidad">+</button>
             </div>
           </div>
           <div style="text-align: right">
-            <div class="price-current">${formatPrice(game.priceUSD * entry.qty)}</div>
+            <div class="price-current">${formatPrice(game.priceUSD * qty)}</div>
             <button type="button" class="link-btn" style="font-size: 12px; margin-top: 5px" data-cart-qty="${game.id}" data-delta="-999">Quitar</button>
           </div>
         </div>
-      `;
-    })
+      `
+    )
     .join('');
-
-  const promo = state.promoCode ? PROMO_CODES[state.promoCode] : null;
-  const discountUSD = promo ? subtotalUSD * (promo.percent / 100) : 0;
-  const totalUSD = Math.max(0, subtotalUSD - discountUSD);
 
   footer.innerHTML = `
     <div class="promo-row">
       <input type="text" id="promoInput" class="input" placeholder="Cupón (SENA2026 o KRONO15)" value="${state.promoCode || ''}" style="height: 36px; text-transform: uppercase" />
       <button type="button" id="btnApplyPromo" class="btn btn-secondary btn-sm" style="height: 36px">Aplicar</button>
     </div>
-    <div class="summary-row"><span>Subtotal referencial</span><span>${formatPrice(subtotalUSD)}</span></div>
+    <div class="summary-row"><span>Subtotal</span><span>${formatPrice(subtotalUSD)}</span></div>
     ${
       promo
         ? `<div class="summary-row" style="color: var(--success)"><span>Cupón ${state.promoCode} (-${promo.percent}%)</span><span>−${formatPrice(discountUSD)}</span></div>`
         : ''
     }
-    <div class="summary-row total"><span>Total estimado</span><span>${formatPrice(totalUSD)}</span></div>
+    <div class="summary-row total"><span>Total Colombia (COP)</span><span>${formatCopExact(totalUSD)}</span></div>
     <p class="field-hint" style="margin: 6px 0 10px">
-      ${escapeHtml(KRONO_CONFIG.currency.rateSource)} (${KRONO_CONFIG.currency.rateUpdatedAt}). Pagos reales habilitados tras configurar pasarela ${escapeHtml(KRONO_CONFIG.payments.provider)} en Etapa 7.
+      Tasa 1 USD = $${fxInfo.rate.toLocaleString('es-CO')} COP · ${escapeHtml(fxInfo.source)} (${escapeHtml(fxInfo.updatedAt)}).
+      Solo disponible en Colombia · Visa, Mastercard, PayPal, Nequi y Corresponsales.
     </p>
-    <button type="button" id="btnCheckout" class="btn btn-primary btn-full">Registrar solicitud / pedido demo</button>
+    <button type="button" id="btnCheckout" class="btn btn-primary btn-full">
+      ${state.user ? 'Continuar al pago en Colombia →' : 'Iniciar sesión para comprar →'}
+    </button>
   `;
 
   document.getElementById('btnApplyPromo').addEventListener('click', () => {
@@ -1500,29 +1736,212 @@ function renderCartDrawer() {
     }
   });
 
-  document.getElementById('btnCheckout').addEventListener('click', completePurchase);
+  document.getElementById('btnCheckout').addEventListener('click', startCheckoutFlow);
 }
 
-function completePurchase() {
-  const newKeys = [];
-  const today = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+/* ==========================================================================
+   ETAPA 7: CHECKOUT COLOMBIA (SESIÓN OBLIGATORIA + 5 MÉTODOS + CORRESPONSALES)
+   ========================================================================== */
+function startCheckoutFlow() {
+  if (state.cart.length === 0) {
+    showToast('Agrega al menos un videojuego al carrito.');
+    return;
+  }
 
-  state.cart.forEach((entry) => {
-    const game = findGameById(entry.id);
-    if (!game) return;
-    for (let i = 0; i < entry.qty; i++) {
-      const record = {
-        gameId: game.id,
-        title: game.title,
-        edition: game.edition,
-        key: generateKey(game.id),
-        date: today
-      };
-      state.library.unshift(record);
-      newKeys.push(record);
+  // REGLA OBLIGATORIA: No se puede comprar sin iniciar sesión
+  if (!state.user) {
+    resumeCheckoutAfterAuth = true;
+    closeDrawer('cartDrawer');
+    showToast('Debes iniciar sesión obligatoriamente para comprar en KRONO.');
+    openAuthModal({ requireForCheckout: true });
+    return;
+  }
+
+  closeDrawer('cartDrawer');
+  openCheckoutModal();
+}
+
+function updateCheckoutPaymentPanels(selectedMethod) {
+  document.querySelectorAll('#paymentMethodsGrid .payment-option').forEach((card) => {
+    card.classList.toggle('selected', card.dataset.payCard === selectedMethod);
+  });
+  document.getElementById('subpanelCard').hidden = !(selectedMethod === 'visa' || selectedMethod === 'mastercard');
+  document.getElementById('subpanelPaypal').hidden = selectedMethod !== 'paypal';
+  document.getElementById('subpanelNequi').hidden = selectedMethod !== 'nequi';
+  document.getElementById('subpanelCorresponsal').hidden = selectedMethod !== 'corresponsal';
+
+  const submitBtn = document.getElementById('btnConfirmCheckout');
+  if (submitBtn) {
+    const labels = {
+      visa: 'Continuar pago con Visa (Colombia)',
+      mastercard: 'Continuar pago con Mastercard (Colombia)',
+      paypal: 'Continuar pago con PayPal',
+      nequi: 'Enviar solicitud de cobro a Nequi',
+      corresponsal: 'Generar código de pago en Corresponsal'
+    };
+    submitBtn.textContent = labels[selectedMethod] || 'Confirmar pedido en Colombia';
+  }
+}
+
+function openCheckoutModal() {
+  if (!state.user) {
+    resumeCheckoutAfterAuth = true;
+    openAuthModal({ requireForCheckout: true });
+    return;
+  }
+
+  const { items, subtotalUSD, promo, discountUSD, totalUSD, totalCOP } = getCartTotals();
+  document.getElementById('checkoutFormView').hidden = false;
+  document.getElementById('checkoutResultView').hidden = true;
+  document.getElementById('checkoutKicker').textContent = `SOLO COLOMBIA (CO) · SESIÓN: ${state.user.name.toUpperCase()}`;
+
+  const summaryBox = document.getElementById('checkoutSummaryBox');
+  summaryBox.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px">
+      <strong style="font-size: 13.5px">Resumen del pedido (${items.reduce((s, i) => s + i.qty, 0)} producto${items.length > 1 ? 's' : ''})</strong>
+      <span class="meta-tag" style="color: var(--accent)">Colombia (COP)</span>
+    </div>
+    ${items
+      .map(
+        ({ game, qty }) => `
+      <div style="display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink-secondary); margin-bottom: 4px">
+        <span>${qty}× ${escapeHtml(game.title)}</span>
+        <span>${formatCopExact(game.priceUSD * qty)}</span>
+      </div>
+    `
+      )
+      .join('')}
+    ${
+      promo
+        ? `<div style="display: flex; justify-content: space-between; font-size: 12.5px; color: var(--success); margin-bottom: 4px"><span>Descuento ${state.promoCode} (-${promo.percent}%)</span><span>−${formatCopExact(discountUSD)}</span></div>`
+        : ''
     }
+    <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; padding-top: 8px; margin-top: 6px; border-top: 1px solid var(--border)">
+      <span>Total a pagar (COP)</span>
+      <span style="color: var(--accent)">$${totalCOP.toLocaleString('es-CO')} COP</span>
+    </div>
+    <div style="font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-muted); margin-top: 5px">
+      Equivalente referencial: $${totalUSD.toFixed(2)} USD · Tasa 1 USD = $${fxInfo.rate.toLocaleString('es-CO')} COP (${escapeHtml(fxInfo.source)}, ${escapeHtml(fxInfo.updatedAt)})
+    </div>
+  `;
+
+  const selectedRadio = document.querySelector('input[name="paymentMethod"]:checked');
+  updateCheckoutPaymentPanels(selectedRadio?.value || 'visa');
+  openModal('checkoutModal');
+}
+
+function generateCorresponsalVoucher(network) {
+  const convenios = {
+    Efecty: '110845',
+    'Corresponsal Bancolombia': '94210',
+    PuntoRed: '88312'
+  };
+  const randDigits = (len) =>
+    Array.from({ length: len }, () => Math.floor(Math.random() * 10)).join('');
+  const expires = new Date(Date.now() + 48 * 60 * 60 * 1000);
+  return {
+    network,
+    convenio: convenios[network] || '110845',
+    paymentCode: `${randDigits(4)}-${randDigits(4)}-${randDigits(4)}`,
+    expiresAt: expires.toLocaleString('es-CO', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  };
+}
+
+function handleCheckoutSubmit(e) {
+  e.preventDefault();
+  if (!state.user) {
+    closeModal('checkoutModal');
+    openAuthModal({ requireForCheckout: true });
+    return;
+  }
+
+  const docNumber = document.getElementById('chkDocNumber').value.replace(/\D/g, '');
+  const phone = document.getElementById('chkPhone').value.replace(/\D/g, '');
+  const department = document.getElementById('chkDepartment').value.trim();
+  const city = document.getElementById('chkCity').value.trim();
+  const legalOk = document.getElementById('chkLegalConsent').checked;
+  const method = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'visa';
+
+  if (docNumber.length < 6 || docNumber.length > 12) {
+    return showToast('Ingresa un número de cédula o documento colombiano válido (6 a 12 dígitos).');
+  }
+  if (phone.length < 10) {
+    return showToast('Ingresa un celular colombiano válido de 10 dígitos (+57).');
+  }
+  if (!department) {
+    return showToast('Selecciona tu departamento en Colombia.');
+  }
+  if (city.length < 2) {
+    return showToast('Indica tu ciudad o municipio en Colombia.');
+  }
+  if (method === 'nequi') {
+    const nequiPhone = document.getElementById('chkNequiPhone').value.replace(/\D/g, '');
+    if (nequiPhone.length !== 10) {
+      return showToast('Ingresa un número celular Nequi válido de 10 dígitos.');
+    }
+  }
+  if (!legalOk) {
+    return showToast('Debes aceptar los Términos y Condiciones y la Política de Privacidad.');
+  }
+
+  const { items, totalUSD, totalCOP } = getCartTotals();
+  const now = new Date();
+  const dateCompact = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const orderRef = `KRN-CO-${dateCompact}-${Math.floor(100000 + Math.random() * 900000)}`;
+  const createdAt = now.toLocaleString('es-CO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   });
 
+  const methodNames = {
+    visa: 'Visa (Wompi Colombia)',
+    mastercard: 'Mastercard (Wompi Colombia)',
+    paypal: 'PayPal',
+    nequi: 'Nequi Colombia',
+    corresponsal: 'Corresponsal en efectivo Colombia'
+  };
+
+  let voucher = null;
+  if (method === 'corresponsal') {
+    const net = document.getElementById('chkCorresponsalNetwork').value;
+    voucher = generateCorresponsalVoucher(net);
+  }
+
+  const orderRecord = {
+    reference: orderRef,
+    country: 'CO',
+    buyerName: state.user.name,
+    buyerIdentifier: state.user.identifier,
+    docNumber,
+    phone: `+57 ${phone}`,
+    department,
+    city,
+    paymentMethod: method,
+    paymentMethodLabel: methodNames[method],
+    status: 'pending_payment',
+    mode: KRONO_CONFIG.payments.liveCheckoutEnabled ? 'production' : 'sandbox_pending_credentials',
+    totalCOP,
+    totalUSD: Number(totalUSD.toFixed(2)),
+    createdAt,
+    voucher,
+    items: items.map(({ game, qty }) => ({
+      gameId: game.id,
+      title: game.title,
+      qty,
+      unitPriceCOP: toCopAmount(game.priceUSD)
+    }))
+  };
+
+  state.orders.unshift(orderRecord);
   state.cart = [];
   state.promoCode = null;
   saveState();
@@ -1530,31 +1949,79 @@ function completePurchase() {
   updateAuroraHud();
   renderCatalog();
 
-  document.getElementById('cartBody').innerHTML = `
-    <div style="padding: 8px 0">
-      <span class="provider-pill" style="color: var(--accent); border-color: var(--accent); margin-bottom: 12px">Modo demostrativo · Sin cobro real</span>
-      <h3 style="margin: 0 0 6px; font-size: 18px">Resumen registrado</h3>
-      <p style="margin: 0 0 16px; font-size: 13px; color: var(--ink-secondary)">
-        Esta orden es demostrativa. Las compras reales y entrega de claves oficiales se activarán en la Etapa 7 con pasarela verificada y webhooks firmados.
-      </p>
-      ${newKeys
-        .map(
-          (item) => `
-        <div class="digital-key-card">
-          <div style="font-weight: 700; font-size: 14px">${escapeHtml(item.title)}</div>
-          <div style="font-size: 12px; color: var(--ink-muted)">${escapeHtml(item.edition)} · ${item.date}</div>
-          <code class="key-code">REF: ${item.key}</code>
+  const resultView = document.getElementById('checkoutResultView');
+  document.getElementById('checkoutFormView').hidden = true;
+  resultView.hidden = false;
+
+  const voucherHtml = voucher
+    ? `
+      <div class="voucher-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap">
+          <strong style="font-size: 14px">Comprobante de Pago en Corresponsal (${escapeHtml(voucher.network)})</strong>
+          <span class="meta-tag" style="color: var(--accent)">Vigencia 48 horas</span>
         </div>
-      `
-        )
-        .join('')}
+        <p style="margin: 8px 0 4px; font-size: 12.5px; color: var(--ink-secondary)">
+          Presenta este código de pago en cualquier punto <strong>${escapeHtml(voucher.network)}</strong> en Colombia:
+        </p>
+        <code class="voucher-code" id="corresponsalCodeText">${escapeHtml(voucher.paymentCode)}</code>
+        <div class="voucher-meta-grid">
+          <div><span>Red / Convenio</span><strong>${escapeHtml(voucher.network)} · #${escapeHtml(voucher.convenio)}</strong></div>
+          <div><span>Valor exacto a pagar</span><strong>$${totalCOP.toLocaleString('es-CO')} COP</strong></div>
+          <div><span>Referencia de pedido</span><strong>${escapeHtml(orderRef)}</strong></div>
+          <div><span>Vence el</span><strong>${escapeHtml(voucher.expiresAt)}</strong></div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px">
+          <button type="button" class="btn btn-primary btn-sm" data-copy-key="${escapeHtml(voucher.paymentCode)}">
+            Copiar código de pago
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnPrintVoucher">
+            Imprimir / Guardar PDF
+          </button>
+        </div>
+      </div>
+    `
+    : `
+      <div class="digital-key-card" style="margin: 14px 0">
+        <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px">
+          Método seleccionado: ${escapeHtml(orderRecord.paymentMethodLabel)}
+        </div>
+        <p style="margin: 0; font-size: 12.5px; color: var(--ink-secondary)">
+          Estado actual: <strong>Pendiente de confirmación de pasarela (Modo Sandbox)</strong>.
+          Las claves digitales y órdenes de despacho físico se liberan únicamente cuando el webhook
+          firmado de Wompi / PayPal confirma el estado <code>APPROVED</code> en el servidor.
+        </p>
+      </div>
+    `;
+
+  resultView.innerHTML = `
+    <span class="provider-pill" style="color: var(--accent); border-color: var(--accent); margin-bottom: 10px">
+      ORDEN REGISTRADA · PENDIENTE DE PAGO (MODO SANDBOX COLOMBIA)
+    </span>
+    <h3 style="margin: 0 0 6px; font-size: 19px">Pedido ${escapeHtml(orderRef)}</h3>
+    <p style="margin: 0 0 12px; font-size: 13px; color: var(--ink-secondary)">
+      Titular: <strong>${escapeHtml(orderRecord.buyerName)}</strong> · ${escapeHtml(orderRecord.city)}, ${escapeHtml(orderRecord.department)} (Colombia).
+      <strong>No se realizó ningún cobro real</strong> mientras la pasarela Wompi / PayPal permanezca en modo sandbox.
+    </p>
+    ${voucherHtml}
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px">
+      <button type="button" class="btn btn-secondary btn-sm" id="btnOpenOrdersFromCheckout">Ver mis pedidos</button>
+      <button type="button" class="btn btn-primary btn-sm" data-close-modal="checkoutModal" style="flex: 1">
+        Seguir explorando KRONO
+      </button>
     </div>
   `;
 
-  document.getElementById('cartFooter').innerHTML = `
-    <button type="button" class="btn btn-primary btn-full" data-close-drawer="cartDrawer">Seguir explorando</button>
-  `;
-  showToast('Solicitud de prueba registrada (sin cobro real).');
+  document.getElementById('btnPrintVoucher')?.addEventListener('click', () => window.print());
+  document.getElementById('btnOpenOrdersFromCheckout')?.addEventListener('click', () => {
+    closeModal('checkoutModal');
+    openAccountDrawer('profile');
+  });
+
+  showToast(
+    voucher
+      ? `Código de pago en ${voucher.network} generado: ${voucher.paymentCode}`
+      : `Pedido ${orderRef} registrado en estado pendiente.`
+  );
 }
 
 function openAccountDrawer(focusSection = 'profile') {
@@ -1578,7 +2045,7 @@ function openAccountDrawer(focusSection = 'profile') {
       <div class="digital-key-card" style="margin-bottom: 16px">
         <div style="font-weight: 700; margin-bottom: 4px">Navegando como invitado</div>
         <p style="margin: 0 0 12px; font-size: 13px; color: var(--ink-secondary)">
-          La autenticación real con OAuth 2.0 y SMS (Supabase Auth) se integrará en la Etapa 6.
+          Debes iniciar sesión para realizar compras en Colombia, guardar pedidos y consultar códigos de corresponsal.
         </p>
         <button type="button" id="btnAccountSignIn" class="btn btn-primary btn-sm btn-full">Acceder a cuenta</button>
       </div>
@@ -1605,26 +2072,38 @@ function openAccountDrawer(focusSection = 'profile') {
         .join('')
     : `<p style="font-size: 13px; color: var(--ink-muted)">Aún no has guardado juegos en favoritos.</p>`;
 
-  const libraryHtml = state.library.length
-    ? state.library
+  const ordersHtml = state.orders.length
+    ? state.orders
         .map(
-          (item) => `
+          (ord) => `
       <div class="digital-key-card">
-        <div style="font-weight: 700; font-size: 13.5px">${escapeHtml(item.title)}</div>
-        <div style="font-size: 11.5px; color: var(--ink-muted)">${item.date} · ${escapeHtml(item.edition)}</div>
-        <code class="key-code">${item.key}</code>
+        <div style="display: flex; justify-content: space-between; gap: 6px; align-items: center">
+          <strong style="font-size: 13px">${escapeHtml(ord.reference)}</strong>
+          <span class="meta-tag" style="color: var(--accent)">Pendiente de pago</span>
+        </div>
+        <div style="font-size: 11.5px; color: var(--ink-muted); margin: 4px 0">
+          ${escapeHtml(ord.createdAt)} · ${escapeHtml(ord.paymentMethodLabel)} · $${Number(ord.totalCOP).toLocaleString('es-CO')} COP
+        </div>
+        <div style="font-size: 12px; color: var(--ink-secondary)">
+          ${ord.items.map((i) => `${i.qty}× ${escapeHtml(i.title)}`).join(', ')}
+        </div>
+        ${
+          ord.voucher
+            ? `<code class="key-code" data-copy-key="${escapeHtml(ord.voucher.paymentCode)}" style="cursor: pointer" title="Clic para copiar">${escapeHtml(ord.voucher.network)}: ${escapeHtml(ord.voucher.paymentCode)}</code>`
+            : ''
+        }
       </div>
     `
         )
         .join('')
-    : `<p style="font-size: 13px; color: var(--ink-muted)">Tus pedidos confirmados aparecerán aquí.</p>`;
+    : `<p style="font-size: 13px; color: var(--ink-muted)">Aún no has registrado pedidos en Colombia.</p>`;
 
   body.innerHTML = `
     ${userCard}
     <h3 style="margin: 16px 0 8px; font-size: 15px">Lista de deseos (${wishlistGames.length})</h3>
     ${wishlistHtml}
-    <h3 style="margin: 22px 0 10px; font-size: 15px">Historial local (${state.library.length})</h3>
-    ${libraryHtml}
+    <h3 style="margin: 22px 0 10px; font-size: 15px">Pedidos en Colombia (${state.orders.length})</h3>
+    ${ordersHtml}
   `;
 
   footer.innerHTML = `
@@ -2125,13 +2604,40 @@ function bindEvents() {
   });
   document.getElementById('btnToggleAuthMode').addEventListener('click', toggleEmailAuthMode);
 
-  document.getElementById('emailAuthForm').addEventListener('submit', (e) => {
+  document.getElementById('btnForgotPassword')?.addEventListener('click', async () => {
+    const email = document.getElementById('authEmail').value.trim();
+    if (!email || !email.includes('@')) {
+      return showToast('Escribe primero tu correo electrónico para solicitar recuperación.');
+    }
+    if (isSupabaseConfigured()) {
+      const { error } = await requestPasswordReset(email);
+      if (error) return showToast(error.message);
+      return showToast(`Correo de recuperación enviado a ${email}.`);
+    }
+    showToast('La recuperación real por correo requiere configurar Supabase Auth (js/config.js).');
+  });
+
+  document.getElementById('emailAuthForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     const fullName = document.getElementById('authFullName').value.trim();
     if (!email || !email.includes('@')) return showToast('Ingresa un correo electrónico válido.');
     if (password.length < 6) return showToast('La contraseña debe tener al menos 6 caracteres.');
+
+    if (isSupabaseConfigured()) {
+      const res =
+        authMode === 'register'
+          ? await signUpWithEmailPassword(email, password, fullName || email.split('@')[0])
+          : await signInWithEmailPassword(email, password);
+      if (res.error) return showToast(res.error.message);
+      const userObj = res.data?.user;
+      const displayName = userObj?.user_metadata?.full_name || fullName || email.split('@')[0];
+      signInUser({ name: displayName, identifier: email, provider: 'Supabase Email', realAuth: true });
+      e.target.reset();
+      return;
+    }
+
     const derivedName =
       authMode === 'register' && fullName
         ? fullName
@@ -2139,7 +2645,7 @@ function bindEvents() {
             .split('@')[0]
             .replace(/[._-]+/g, ' ')
             .replace(/\b\w/g, (c) => c.toUpperCase());
-    signInUser({ name: derivedName, identifier: email, provider: 'Correo electrónico' });
+    signInUser({ name: derivedName, identifier: email, provider: 'Correo (Vista previa)' });
     e.target.reset();
   });
 
@@ -2165,18 +2671,31 @@ function bindEvents() {
     });
   });
 
-  document.getElementById('btnSendOtp').addEventListener('click', () => {
+  document.getElementById('btnSendOtp').addEventListener('click', async () => {
     const code = document.getElementById('authPhoneCode').value;
     const number = document.getElementById('authPhoneNumber').value.replace(/[^\d\s-]/g, '').trim();
     if (number.replace(/\D/g, '').length < 7) return showToast('Ingresa un número válido (mínimo 7 dígitos).');
+    const phoneE164 = `${code}${number.replace(/\D/g, '')}`;
     pendingPhoneFormatted = `${code} ${number}`;
+
+    if (isSupabaseConfigured()) {
+      const { error } = await sendPhoneOtp(phoneE164);
+      if (error) return showToast(error.message);
+      document.getElementById('phoneStep1').hidden = true;
+      document.getElementById('phoneStep2').hidden = false;
+      document.getElementById('phoneOtpHint').textContent = `Código SMS enviado a ${pendingPhoneFormatted}.`;
+      otpInputs.forEach((b) => (b.value = ''));
+      otpInputs[0].focus();
+      return showToast(`SMS enviado a ${pendingPhoneFormatted}.`);
+    }
+
     generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
     document.getElementById('phoneStep1').hidden = true;
     document.getElementById('phoneStep2').hidden = false;
-    document.getElementById('phoneOtpHint').textContent = `Enviado a ${pendingPhoneFormatted}. Código de prueba SMS: ${generatedOtp}`;
+    document.getElementById('phoneOtpHint').textContent = `Vista previa SMS (${pendingPhoneFormatted}). Código local: ${generatedOtp}`;
     otpInputs.forEach((b) => (b.value = ''));
     otpInputs[0].focus();
-    showToast(`SMS (${pendingPhoneFormatted}): código ${generatedOtp}`);
+    showToast(`Vista previa SMS (${pendingPhoneFormatted}): código ${generatedOtp}`);
   });
 
   document.getElementById('btnBackPhone').addEventListener('click', () => {
@@ -2184,16 +2703,36 @@ function bindEvents() {
     document.getElementById('phoneStep1').hidden = false;
   });
 
-  document.getElementById('phoneAuthForm').addEventListener('submit', (e) => {
+  document.getElementById('phoneAuthForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const entered = otpInputs.map((i) => i.value).join('');
     if (entered.length < 6) return showToast('Completa los 6 dígitos del código SMS.');
+
+    if (isSupabaseConfigured()) {
+      const phoneE164 = pendingPhoneFormatted.replace(/\s+/g, '');
+      const { error } = await verifyPhoneOtp(phoneE164, entered);
+      if (error) return showToast(error.message);
+      signInUser({ name: `Jugador ${pendingPhoneFormatted.slice(-4)}`, identifier: pendingPhoneFormatted, provider: 'Supabase SMS', realAuth: true });
+      e.target.reset();
+      document.getElementById('phoneStep2').hidden = true;
+      document.getElementById('phoneStep1').hidden = false;
+      return;
+    }
+
     if (entered !== generatedOtp) return showToast(`Código incorrecto. Usa: ${generatedOtp}`);
-    signInUser({ name: `Jugador ${pendingPhoneFormatted.slice(-4)}`, identifier: pendingPhoneFormatted, provider: 'Teléfono (SMS)' });
+    signInUser({ name: `Jugador ${pendingPhoneFormatted.slice(-4)}`, identifier: pendingPhoneFormatted, provider: 'Teléfono (Vista previa)' });
     e.target.reset();
     document.getElementById('phoneStep2').hidden = true;
     document.getElementById('phoneStep1').hidden = false;
   });
+
+  // Checkout Colombia (selector de método de pago y envío)
+  document.getElementById('paymentMethodsGrid')?.addEventListener('change', (e) => {
+    if (e.target.name === 'paymentMethod') {
+      updateCheckoutPaymentPanels(e.target.value);
+    }
+  });
+  document.getElementById('checkoutForm')?.addEventListener('submit', handleCheckoutSubmit);
 
   // Formulario de contacto
   document.getElementById('contactForm').addEventListener('submit', (e) => {
@@ -2213,7 +2752,7 @@ function bindEvents() {
     }
     if (!consent) {
       feedback.classList.add('error');
-      feedback.textContent = 'Debes aceptar la autorización de contacto.';
+      feedback.textContent = 'Debes aceptar la autorización de contacto conforme a la Ley 1581/2012.';
       return;
     }
 
@@ -2241,6 +2780,7 @@ function bindEvents() {
       closeModal('prefsModal');
       closeModal('gameModal');
       closeModal('newsModal');
+      closeModal('checkoutModal');
       closeDrawer('cartDrawer');
       closeDrawer('accountDrawer');
       closeMobileMenu();
@@ -2260,12 +2800,20 @@ async function init() {
   syncCurrencyButtons();
   updateHeaderUI();
   renderPersonalizeRibbon();
-  renderNews();
   prefillContactIfLoggedIn();
   bindEvents();
 
-  // Carga asíncrona del catálogo verificado de 500 videojuegos
-  const loaded = await loadCatalog();
+  // Carga en paralelo: tasa COP/USD verificable, noticias verificadas RSS y catálogo de 500 juegos
+  const [liveFx, , loaded] = await Promise.all([
+    loadVerifiedFxRate(),
+    loadVerifiedNews(),
+    loadCatalog()
+  ]);
+
+  if (liveFx?.rate) {
+    fxInfo = liveFx;
+  }
+
   catalogGames = loaded.games;
   catalogMeta = loaded.meta;
   featuredGames = catalogGames.filter((g) => g.featured).slice(0, 12);
