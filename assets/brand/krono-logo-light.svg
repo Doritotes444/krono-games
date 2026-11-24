@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 84" width="320" height="84" role="img" aria-label="Logotipo KRONO para fondo claro">
+  <g transform="translate(8,10)">
+    <path d="M10 4h34l10 10v42H10a4 4 0 0 1-4-4V8a4 4 0 0 1 4-4z" fill="#11141B" stroke="#A6821E" stroke-width="2.4"/>
+    <path d="M16 14h7v32h-7z" fill="#F7F6F2"/>
+    <path d="M25 29L41 14h8L33 29z" fill="#D4AF37"/>
+    <path d="M25 31h8l16 15h-8z" fill="#F7F6F2"/>
+    <circle cx="27" cy="30" r="3" fill="#11141B" stroke="#D4AF37" stroke-width="1.7"/>
+    <path d="M44 4v10h10" fill="none" stroke="#A6821E" stroke-width="1.8"/>
+  </g>
+  <text x="82" y="45" fill="#11141B" font-family="Plus Jakarta Sans, Inter, sans-serif" font-size="31" font-weight="800" letter-spacing="6">KRONO</text>
+  <text x="84" y="64" fill="#8C6B14" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" letter-spacing="3.2">GAME STORE &amp; ARCHIVE</text>
+</svg>

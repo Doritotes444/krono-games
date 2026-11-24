@@ -10,6 +10,12 @@ import {
   TASTE_PRESETS,
   USD_TO_COP
 } from './data.js';
+import {
+  renderAuroraCase,
+  setAuroraCaseState,
+  toggleAuroraDisc
+} from './components/aurora-case.js';
+import { KRONO_CONFIG } from './config.js';
 
 const STORAGE_KEY = 'krono_store_state_v2';
 
@@ -42,7 +48,7 @@ let filterState = {
 
 let newsCategory = 'all';
 let coverflowIndex = 0;
-let coverflowFlipped = false;
+let coverflowCaseState = 'back'; // 'back' | 'front' | 'open'
 let coverflowDiscOut = false;
 
 let authMode = 'login';
@@ -178,114 +184,7 @@ function scoreGameForUser(game) {
 }
 
 /* ==========================================================================
-   Componente de Caja Física 3D (Portada real + Contraportada + Disco)
-   ========================================================================== */
-function renderPhysicalCaseHTML(game, { idAttr = '', includeDisc = true, flipped = false, discOut = false, lazy = true } = {}) {
-  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.xbox;
-  const stageClasses = ['case-stage', flipped ? 'flipped' : '', discOut ? 'disc-out' : '']
-    .filter(Boolean)
-    .join(' ');
-  const shots = game.screenshots && game.screenshots.length >= 2 ? game.screenshots : [game.headerImg, game.heroBg];
-
-  return `
-    <div
-      class="${stageClasses}"
-      ${idAttr ? `id="${idAttr}"` : ''}
-      style="--case-header-bg: ${theme.headerBg}; --case-header-text: ${theme.headerText}"
-    >
-      ${
-        includeDisc
-          ? `
-        <div class="optical-disc" aria-hidden="true">
-          <div class="disc-rotor">
-            <img
-              class="disc-art"
-              src="${game.cover}"
-              alt=""
-              ${lazy ? 'loading="lazy"' : ''}
-              onerror="this.onerror=null;this.src='${game.fallbackCover}'"
-            />
-            <div class="disc-sheen"></div>
-            <div class="disc-label-band">${escapeHtml(theme.short)} · ${escapeHtml(game.serial)}</div>
-            <div class="disc-hub"></div>
-          </div>
-        </div>
-      `
-          : ''
-      }
-
-      <div class="case-3d">
-        <!-- CARÁTULA FRONTAL -->
-        <div class="case-face case-front">
-          <div class="case-banner">
-            <span>${escapeHtml(theme.label)}</span>
-            <span>${game.year}</span>
-          </div>
-          <div class="case-artwork">
-            <img
-              src="${game.cover}"
-              alt="Carátula oficial de ${escapeHtml(game.title)}"
-              ${lazy ? 'loading="lazy"' : ''}
-              onerror="this.onerror=null;this.src='${game.fallbackCover}'"
-            />
-          </div>
-          <div class="case-gloss"></div>
-        </div>
-
-        <!-- CONTRAPORTADA FÍSICA REAL -->
-        <div class="case-face case-back">
-          <div class="case-banner">
-            <span>${escapeHtml(theme.short)} · CONTRAPORTADA</span>
-            <span>${escapeHtml(game.serial)}</span>
-          </div>
-
-          <div class="case-back-inner">
-            <p class="back-tagline">${escapeHtml(game.backTagline)}</p>
-
-            <div class="back-shots">
-              <img
-                src="${shots[0]}"
-                alt="Captura de juego 1 de ${escapeHtml(game.title)}"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='${game.fallbackCover}'"
-              />
-              <img
-                src="${shots[1]}"
-                alt="Captura de juego 2 de ${escapeHtml(game.title)}"
-                loading="lazy"
-                onerror="this.onerror=null;this.src='${game.fallbackCover}'"
-              />
-            </div>
-
-            <p class="back-synopsis">${escapeHtml(game.synopsis)}</p>
-
-            <div class="back-specs-grid">
-              <div><span>Jugadores</span>${escapeHtml(game.players)}</div>
-              <div><span>Video</span>${escapeHtml(game.resolution)}</div>
-              <div><span>Almacenamiento</span>${escapeHtml(game.storage)}</div>
-              <div><span>Idiomas</span>${escapeHtml(game.languages)}</div>
-            </div>
-
-            <div class="back-footer">
-              <div class="esrb-box" title="Clasificación ${escapeHtml(game.esrbText)}">
-                <span>ESRB</span>
-                <strong>${escapeHtml(game.esrb)}</strong>
-              </div>
-              <div class="barcode-box">
-                <div class="barcode-stripes" aria-hidden="true"></div>
-                <span class="barcode-num">${escapeHtml(game.barcode)}</span>
-              </div>
-            </div>
-          </div>
-          <div class="case-gloss"></div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/* ==========================================================================
-   Vitrina Aurora 3D CoverFlow
+   Vitrina Aurora 3D CoverFlow (Reposo contraportada -> Hover portada -> Clic abrir + disco)
    ========================================================================== */
 function getCoverflowOffset(index, activeIndex, total) {
   let diff = index - activeIndex;
@@ -302,11 +201,10 @@ function renderAuroraCoverflow() {
     const isActive = index === coverflowIndex;
     return `
       <div class="cf-slot" data-cf-index="${index}" data-offset="${offset}">
-        ${renderPhysicalCaseHTML(game, {
+        ${renderAuroraCase(game, {
           idAttr: isActive ? 'auroraActiveCase' : '',
-          includeDisc: true,
-          flipped: isActive && coverflowFlipped,
-          discOut: isActive && coverflowDiscOut,
+          initialState: isActive ? coverflowCaseState : 'back',
+          discExtracted: isActive && coverflowDiscOut,
           lazy: Math.abs(Number(offset) || 0) > 1
         })}
       </div>
@@ -322,14 +220,17 @@ function updateAuroraPositions() {
     const idx = Number(slot.dataset.cfIndex);
     const offset = getCoverflowOffset(idx, coverflowIndex, GAMES.length);
     slot.dataset.offset = offset;
-    const stage = slot.querySelector('.case-stage');
+    const caseEl = slot.querySelector('.aurora-case');
+    if (!caseEl) return;
     if (idx === coverflowIndex) {
-      stage.id = 'auroraActiveCase';
-      stage.classList.toggle('flipped', coverflowFlipped);
-      stage.classList.toggle('disc-out', coverflowDiscOut);
+      caseEl.id = 'auroraActiveCase';
+      setAuroraCaseState(caseEl, coverflowCaseState);
+      if (coverflowCaseState === 'open') {
+        toggleAuroraDisc(caseEl, coverflowDiscOut);
+      }
     } else {
-      stage.removeAttribute('id');
-      stage.classList.remove('flipped', 'disc-out');
+      caseEl.removeAttribute('id');
+      setAuroraCaseState(caseEl, 'back');
     }
   });
   updateAuroraHud();
@@ -357,8 +258,13 @@ function updateAuroraHud() {
   document.getElementById('hudTitle').textContent = game.title;
   document.getElementById('hudSub').textContent = `${game.studio} · ${game.genres.join(', ')} · ${formatPrice(game.priceUSD)}${game.discount ? ` (-${game.discount}%)` : ''}`;
 
-  document.getElementById('btnHudFlip').textContent = coverflowFlipped ? '↺ Ver portada' : '↺ Contraportada';
-  document.getElementById('btnHudDisc').textContent = coverflowDiscOut ? '◉ Guardar disco' : '◉ Sacar disco';
+  const flipBtn = document.getElementById('btnHudFlip');
+  const openBtn = document.getElementById('btnHudOpen');
+  const discBtn = document.getElementById('btnHudDisc');
+
+  flipBtn.textContent = coverflowCaseState === 'front' ? '↺ Contraportada' : '↺ Ver portada';
+  openBtn.textContent = coverflowCaseState === 'open' ? 'Cerrar caja' : 'Abrir caja 3D';
+  discBtn.textContent = coverflowDiscOut ? '◉ Insertar disco' : '◉ Extraer disco';
 
   const inCart = state.cart.some((c) => c.id === game.id);
   const cartBtn = document.getElementById('btnHudCart');
@@ -367,7 +273,7 @@ function updateAuroraHud() {
 
 function stepCoverflow(delta) {
   coverflowIndex = (coverflowIndex + delta + GAMES.length) % GAMES.length;
-  coverflowFlipped = false;
+  coverflowCaseState = 'back';
   coverflowDiscOut = false;
   updateAuroraPositions();
 }
@@ -604,16 +510,16 @@ function renderCatalog() {
               </button>
             </div>
 
-            <div data-open-detail="${game.id}" style="cursor: pointer">
-              ${renderPhysicalCaseHTML(game, { includeDisc: false, flipped: false, lazy: true })}
+            <div data-card-case-trigger="${game.id}">
+              ${renderAuroraCase(game, { initialState: 'back', compact: true, lazy: true })}
             </div>
 
             <div class="card-case-controls">
-              <button type="button" class="mini-pill-btn" data-flip-card="${game.id}" title="Voltear para ver la contraportada">
-                ↺ Reverso
+              <button type="button" class="mini-pill-btn" data-flip-card="${game.id}" title="Alternar entre contraportada y portada frontal">
+                ↺ Portada
               </button>
-              <button type="button" class="mini-pill-btn" data-open-disc="${game.id}" title="Ver disco físico y caja 3D">
-                ◉ Disco 3D
+              <button type="button" class="mini-pill-btn" data-open-case-card="${game.id}" title="Abrir caja 3D y ver el disco interior">
+                ◉ Abrir caja
               </button>
             </div>
           </div>
@@ -643,10 +549,10 @@ function renderCatalog() {
                   type="button"
                   class="btn btn-secondary btn-sm"
                   data-open-detail="${game.id}"
-                  aria-label="Inspeccionar caja de ${escapeHtml(game.title)}"
+                  aria-label="Abrir ficha completa de ${escapeHtml(game.title)}"
                 >
-                  <span class="btn-detail-label">Caja</span>
-                  <span aria-hidden="true">3D</span>
+                  <span class="btn-detail-label">Ficha</span>
+                  <span aria-hidden="true">→</span>
                 </button>
                 <button
                   type="button"
@@ -848,6 +754,9 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
   document.getElementById('detailKicker').textContent = `${theme.label} · ${ERAS[game.era].label} (${game.year}) · ${game.studio}`;
   document.getElementById('detailTitle').textContent = game.title;
 
+  const initialCaseState = mode === 'disc' || mode === 'open' ? 'open' : mode === 'front' ? 'front' : 'back';
+  const initialDiscOut = mode === 'disc';
+
   const content = document.getElementById('detailContent');
   content.innerHTML = `
     <div id="detailTrailerSlot" hidden></div>
@@ -855,26 +764,28 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
     <div class="detail-grid">
       <div class="inspector-stage">
         <div class="inspector-case-wrap">
-          ${renderPhysicalCaseHTML(game, {
+          ${renderAuroraCase(game, {
             idAttr: 'inspectorCaseStage',
-            includeDisc: true,
-            flipped: mode === 'back',
-            discOut: mode === 'disc',
+            initialState: initialCaseState,
+            discExtracted: initialDiscOut,
             lazy: false
           })}
         </div>
 
-        <div class="inspector-toolbar" role="group" aria-label="Vistas de la caja física 3D">
-          <button type="button" class="btn btn-sm ${mode === 'front' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="front">
+        <div class="inspector-toolbar" role="group" aria-label="Controles de caja física 3D">
+          <button type="button" class="btn btn-sm ${initialCaseState === 'back' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="back">
+            Contraportada
+          </button>
+          <button type="button" class="btn btn-sm ${initialCaseState === 'front' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="front">
             Portada
           </button>
-          <button type="button" class="btn btn-sm ${mode === 'back' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="back">
-            ↺ Contraportada
+          <button type="button" class="btn btn-sm ${initialCaseState === 'open' && !initialDiscOut ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="open">
+            Abrir caja
           </button>
-          <button type="button" class="btn btn-sm ${mode === 'disc' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="disc">
-            ◉ Disco físico
+          <button type="button" class="btn btn-sm ${initialDiscOut ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="disc">
+            ◉ ${initialDiscOut ? 'Insertar disco' : 'Extraer disco'}
           </button>
-          <button type="button" class="btn btn-sm btn-secondary" id="btnToggleDiscSpin" ${mode === 'disc' ? '' : 'hidden'}>
+          <button type="button" class="btn btn-sm btn-secondary" id="btnToggleDiscSpin" ${initialDiscOut ? '' : 'hidden'}>
             ⏸ Pausar giro
           </button>
         </div>
@@ -937,22 +848,48 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
   const spinBtn = document.getElementById('btnToggleDiscSpin');
   let discPaused = false;
 
+  const syncInspectorButtons = () => {
+    const isOpen = stage.classList.contains('is-open');
+    const isFront = stage.classList.contains('is-front-pinned');
+    const isDisc = stage.classList.contains('is-disc-extracted');
+    const activeMode = isDisc ? 'disc' : isOpen ? 'open' : isFront ? 'front' : 'back';
+    spinBtn.hidden = !isDisc;
+    content.querySelectorAll('[data-insp-mode]').forEach((b) => {
+      b.classList.toggle('btn-primary', b.dataset.inspMode === activeMode);
+      b.classList.toggle('btn-secondary', b.dataset.inspMode !== activeMode);
+      if (b.dataset.inspMode === 'disc') {
+        b.textContent = isDisc ? '◉ Insertar disco' : '◉ Extraer disco';
+      }
+    });
+  };
+
+  stage.addEventListener('click', (ev) => {
+    if (ev.target.closest('[data-toggle-disc]')) {
+      ev.stopPropagation();
+      toggleAuroraDisc(stage);
+      syncInspectorButtons();
+      return;
+    }
+    const next = stage.classList.contains('is-open') ? 'back' : 'open';
+    setAuroraCaseState(stage, next);
+    syncInspectorButtons();
+  });
+
   content.querySelectorAll('[data-insp-mode]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const m = btn.dataset.inspMode;
-      stage.classList.toggle('flipped', m === 'back');
-      stage.classList.toggle('disc-out', m === 'disc');
-      spinBtn.hidden = m !== 'disc';
-      content.querySelectorAll('[data-insp-mode]').forEach((b) => {
-        b.classList.toggle('btn-primary', b.dataset.inspMode === m);
-        b.classList.toggle('btn-secondary', b.dataset.inspMode !== m);
-      });
+      if (m === 'disc') {
+        toggleAuroraDisc(stage);
+      } else {
+        setAuroraCaseState(stage, m);
+      }
+      syncInspectorButtons();
     });
   });
 
   spinBtn.addEventListener('click', () => {
     discPaused = !discPaused;
-    stage.querySelector('.disc-rotor')?.classList.toggle('paused', discPaused);
+    stage.querySelector('.tray-disc__rotor')?.classList.toggle('paused', discPaused);
     spinBtn.textContent = discPaused ? '▶ Girar disco' : '⏸ Pausar giro';
   });
 
@@ -1454,18 +1391,31 @@ function bindEvents() {
 
   const cfTrack = document.getElementById('coverflowTrack');
   cfTrack.addEventListener('click', (e) => {
+    const discBtn = e.target.closest('[data-toggle-disc]');
+    if (discBtn) {
+      e.stopPropagation();
+      const slot = discBtn.closest('.cf-slot');
+      if (slot && Number(slot.dataset.cfIndex) === coverflowIndex) {
+        coverflowCaseState = 'open';
+        coverflowDiscOut = !coverflowDiscOut;
+        updateAuroraPositions();
+      }
+      return;
+    }
+
     const slot = e.target.closest('.cf-slot');
     if (!slot) return;
     const idx = Number(slot.dataset.cfIndex);
     if (idx !== coverflowIndex) {
       coverflowIndex = idx;
-      coverflowFlipped = false;
+      coverflowCaseState = 'back';
       coverflowDiscOut = false;
       updateAuroraPositions();
     } else {
-      openGameDetail(GAMES[idx].id, {
-        mode: coverflowDiscOut ? 'disc' : coverflowFlipped ? 'back' : 'front'
-      });
+      // Clic en la caja centrada abre o cierra la caja 3D con bisagra
+      coverflowCaseState = coverflowCaseState === 'open' ? 'back' : 'open';
+      if (coverflowCaseState !== 'open') coverflowDiscOut = false;
+      updateAuroraPositions();
     }
   });
 
@@ -1488,20 +1438,30 @@ function bindEvents() {
 
   // Botones del HUD Aurora
   document.getElementById('btnHudFlip').addEventListener('click', () => {
-    coverflowFlipped = !coverflowFlipped;
-    if (coverflowFlipped) coverflowDiscOut = false;
+    coverflowCaseState = coverflowCaseState === 'front' ? 'back' : 'front';
+    coverflowDiscOut = false;
+    updateAuroraPositions();
+  });
+
+  document.getElementById('btnHudOpen').addEventListener('click', () => {
+    coverflowCaseState = coverflowCaseState === 'open' ? 'back' : 'open';
+    if (coverflowCaseState !== 'open') coverflowDiscOut = false;
     updateAuroraPositions();
   });
 
   document.getElementById('btnHudDisc').addEventListener('click', () => {
-    coverflowDiscOut = !coverflowDiscOut;
-    if (coverflowDiscOut) coverflowFlipped = false;
+    if (coverflowCaseState !== 'open') {
+      coverflowCaseState = 'open';
+      coverflowDiscOut = true;
+    } else {
+      coverflowDiscOut = !coverflowDiscOut;
+    }
     updateAuroraPositions();
   });
 
   document.getElementById('btnHudInspect').addEventListener('click', () => {
     openGameDetail(GAMES[coverflowIndex].id, {
-      mode: coverflowDiscOut ? 'disc' : coverflowFlipped ? 'back' : 'front'
+      mode: coverflowDiscOut ? 'disc' : coverflowCaseState
     });
   });
 
@@ -1606,22 +1566,66 @@ function bindEvents() {
 
   // Delegación global
   document.addEventListener('click', (e) => {
+    // 1. Clic en disco interior de una caja del catálogo
+    const cardDiscBtn = e.target.closest('#gamesGrid [data-toggle-disc]');
+    if (cardDiscBtn) {
+      e.stopPropagation();
+      const caseEl = cardDiscBtn.closest('.aurora-case');
+      toggleAuroraDisc(caseEl);
+      return;
+    }
+
+    // 2. Botón táctil Portada / Reverso en tarjeta de catálogo
     const flipCardBtn = e.target.closest('[data-flip-card]');
     if (flipCardBtn) {
       e.stopPropagation();
       const card = flipCardBtn.closest('.game-card');
-      const stage = card?.querySelector('.case-stage');
-      if (stage) {
-        const isFlipped = stage.classList.toggle('flipped');
-        flipCardBtn.textContent = isFlipped ? '↺ Portada' : '↺ Reverso';
+      const box = card?.querySelector('.card-case-box');
+      const caseEl = card?.querySelector('.aurora-case');
+      const openBtn = card?.querySelector('[data-open-case-card]');
+      if (caseEl) {
+        const next = caseEl.dataset.caseState === 'front' ? 'back' : 'front';
+        setAuroraCaseState(caseEl, next);
+        box?.classList.remove('has-open-case');
+        flipCardBtn.textContent = next === 'front' ? '↺ Reverso' : '↺ Portada';
+        if (openBtn) openBtn.textContent = '◉ Abrir caja';
       }
       return;
     }
 
-    const openDiscBtn = e.target.closest('[data-open-disc]');
-    if (openDiscBtn) {
+    // 3. Botón Abrir / Cerrar caja 3D en tarjeta de catálogo
+    const openCaseCardBtn = e.target.closest('[data-open-case-card]');
+    if (openCaseCardBtn) {
       e.stopPropagation();
-      openGameDetail(openDiscBtn.dataset.openDisc, { mode: 'disc' });
+      const card = openCaseCardBtn.closest('.game-card');
+      const box = card?.querySelector('.card-case-box');
+      const caseEl = card?.querySelector('.aurora-case');
+      const flipBtn = card?.querySelector('[data-flip-card]');
+      if (caseEl) {
+        const opening = !caseEl.classList.contains('is-open');
+        setAuroraCaseState(caseEl, opening ? 'open' : 'back');
+        box?.classList.toggle('has-open-case', opening);
+        openCaseCardBtn.textContent = opening ? '✕ Cerrar' : '◉ Abrir caja';
+        if (flipBtn) flipBtn.textContent = '↺ Portada';
+      }
+      return;
+    }
+
+    // 4. Clic directo sobre la caja 3D en el catálogo: abre/cierra la caja con bisagra
+    const cardCaseTrigger = e.target.closest('[data-card-case-trigger]');
+    if (cardCaseTrigger) {
+      const card = cardCaseTrigger.closest('.game-card');
+      const box = card?.querySelector('.card-case-box');
+      const caseEl = cardCaseTrigger.querySelector('.aurora-case');
+      const openBtn = card?.querySelector('[data-open-case-card]');
+      const flipBtn = card?.querySelector('[data-flip-card]');
+      if (caseEl) {
+        const opening = !caseEl.classList.contains('is-open');
+        setAuroraCaseState(caseEl, opening ? 'open' : 'back');
+        box?.classList.toggle('has-open-case', opening);
+        if (openBtn) openBtn.textContent = opening ? '✕ Cerrar' : '◉ Abrir caja';
+        if (flipBtn) flipBtn.textContent = '↺ Portada';
+      }
       return;
     }
 
@@ -1641,7 +1645,7 @@ function bindEvents() {
 
     const detailBtn = e.target.closest('[data-open-detail]');
     if (detailBtn) {
-      openGameDetail(detailBtn.dataset.openDetail, { mode: 'front' });
+      openGameDetail(detailBtn.dataset.openDetail, { mode: 'back' });
       return;
     }
 

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Símbolo KRONO">
+  <!-- Monolito biselado de cartucho + prisma de reloj de arena + eje óptico K -->
+  <path d="M12 6h34l10 10v42H12a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z" fill="#131720" stroke="#D4AF37" stroke-width="2.5"/>
+  <!-- Columna izquierda (eje del tiempo / lomo de caja) -->
+  <path d="M18 16h7v32h-7z" fill="#F3F5F8"/>
+  <!-- Prisma superior diagonal (reloj de arena + brazo superior K) -->
+  <path d="M27 31L43 16h8L35 31z" fill="#D4AF37"/>
+  <!-- Prisma inferior diagonal (brazo inferior K) -->
+  <path d="M27 33l8 0 16 15h-8z" fill="#F3F5F8"/>
+  <!-- Muesca temporal / eje óptico central -->
+  <circle cx="29" cy="32" r="3" fill="#0B0D11" stroke="#D4AF37" stroke-width="1.8"/>
+  <!-- Indicador generacional superior derecho -->
+  <path d="M46 6v10h10" fill="none" stroke="#D4AF37" stroke-width="2" stroke-linejoin="round"/>
+</svg>

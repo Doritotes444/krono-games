@@ -8,7 +8,19 @@
       name="description"
       content="Krono es una tienda y vitrina 3D de videojuegos inspirada en Aurora (Xbox 360): portadas oficiales reales, contraportadas, discos físicos, lanzamientos, clásicos y noticias."
     />
-    <meta name="theme-color" content="#0A0D12" />
+    <meta name="theme-color" content="#0B0D11" />
+    <link rel="canonical" href="https://doritotes444.github.io/krono-games/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:site_name" content="KRONO Game Store" />
+    <meta property="og:title" content="KRONO — Tienda Especializada de Videojuegos, Cajas 3D y Noticias" />
+    <meta
+      property="og:description"
+      content="Explora videojuegos físicos y digitales con cajas 3D interactivas (contraportada, portada frontal y disco extraíble), noticias verificadas y catálogo multiplataforma."
+    />
+    <meta property="og:url" content="https://doritotes444.github.io/krono-games/" />
+    <meta property="og:image" content="https://doritotes444.github.io/krono-games/assets/images/hero_editorial.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,17 +29,55 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/aurora-case.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "KRONO Game Store",
+            "url": "https://doritotes444.github.io/krono-games/",
+            "logo": "https://doritotes444.github.io/krono-games/assets/brand/krono-logo-primary.svg"
+          },
+          {
+            "@type": "WebSite",
+            "name": "KRONO Game Store",
+            "url": "https://doritotes444.github.io/krono-games/",
+            "inLanguage": "es-CO",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://doritotes444.github.io/krono-games/#catalogo?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
+    <a href="#mainContent" class="skip-link">Saltar al contenido principal</a>
+
     <!-- ====================================================================
          HEADER & NAVEGACIÓN
          ==================================================================== -->
     <header class="site-header">
       <div class="container header-inner">
-        <a href="#aurora" class="brand" aria-label="Krono inicio">
-          <span class="brand-mark" aria-hidden="true">K</span>
-          <span>KRONO</span>
-          <span class="brand-sub">GAME STORE</span>
+        <a href="#aurora" class="brand" aria-label="KRONO Game Store inicio">
+          <img
+            src="assets/brand/krono-horizontal.svg"
+            alt="KRONO"
+            class="brand-logo-img brand-logo-dark"
+            width="150"
+            height="30"
+          />
+          <img
+            src="assets/brand/krono-mono-dark.svg"
+            alt="KRONO"
+            class="brand-logo-img brand-logo-light"
+            width="150"
+            height="30"
+          />
         </a>
 
         <nav class="main-nav" aria-label="Navegación principal">
@@ -119,10 +169,20 @@
     <div id="mobileNavDrawer" class="mobile-nav-drawer" aria-hidden="true">
       <div class="mobile-nav-panel">
         <div class="drawer-header" style="padding: 0 0 14px; border-bottom: 1px solid var(--border)">
-          <span class="brand">
-            <span class="brand-mark" aria-hidden="true">K</span>
-            <span>KRONO</span>
-          </span>
+          <img
+            src="assets/brand/krono-horizontal.svg"
+            alt="KRONO"
+            class="brand-logo-img brand-logo-dark"
+            width="140"
+            height="28"
+          />
+          <img
+            src="assets/brand/krono-mono-dark.svg"
+            alt="KRONO"
+            class="brand-logo-img brand-logo-light"
+            width="140"
+            height="28"
+          />
           <button type="button" id="btnCloseMobileMenu" class="icon-btn" aria-label="Cerrar menú">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
@@ -158,9 +218,9 @@
       </div>
     </div>
 
-    <main>
+    <main id="mainContent">
       <!-- ====================================================================
-           VITRINA AURORA 3D (CARÁTULAS REALES, CONTRAPORTADA Y DISCO)
+           VITRINA AURORA 3D (CARÁTULAS REALES, CONTRAPORTADA, BISAGRA Y DISCO)
            ==================================================================== -->
       <section class="aurora-hero" id="aurora">
         <div class="aurora-backdrop" aria-hidden="true">
@@ -170,18 +230,18 @@
         <div class="container aurora-inner">
           <div class="aurora-top-bar">
             <div>
-              <p class="section-eyebrow">Vitrina física 3D estilo Aurora · 1995 — 2026</p>
-              <h1 class="aurora-title">Carátulas reales. Videojuegos que valen la pena.</h1>
+              <p class="section-eyebrow">Coleccionismo interactivo · Vitrina Aurora 3D</p>
+              <h1 class="aurora-title">Carátulas reales. Cajas 3D que se abren.</h1>
               <p class="aurora-subtitle">
-                Explora lanzamientos, modernos y clásicos como en tu consola: gira cualquier caja
-                para ver su contraportada real, extrae el disco físico y compra al instante.
+                En reposo ves la contraportada. Pasa el cursor (o toca) para girar a la portada
+                oficial, haz clic en la caja para abrirla y pulsa el disco interior para extraerlo.
               </p>
             </div>
 
             <div class="aurora-controls-hint" aria-hidden="true">
               <span class="kbd">←</span>
               <span class="kbd">→</span>
-              <span>Navegar carátulas</span>
+              <span>Explorar</span>
               <span class="kbd">/</span>
               <span>Buscar</span>
             </div>
@@ -212,13 +272,16 @@
 
             <div class="aurora-hud-actions">
               <button type="button" id="btnHudFlip" class="btn btn-secondary btn-sm">
-                ↺ Contraportada
+                ↺ Ver portada
+              </button>
+              <button type="button" id="btnHudOpen" class="btn btn-secondary btn-sm">
+                Abrir caja 3D
               </button>
               <button type="button" id="btnHudDisc" class="btn btn-secondary btn-sm">
-                ◉ Sacar disco
+                ◉ Extraer disco
               </button>
               <button type="button" id="btnHudInspect" class="btn btn-secondary btn-sm">
-                Ficha y tráiler
+                Ficha completa
               </button>
               <button type="button" id="btnHudCart" class="btn btn-primary btn-sm">
                 Añadir al carrito
@@ -259,10 +322,11 @@
           <div class="section-header">
             <div>
               <p class="section-eyebrow">Biblioteca y tienda</p>
-              <h2 class="section-title">Todos los juegos en edición física y digital</h2>
+              <h2 class="section-title">Cajas interactivas en edición física y digital</h2>
               <p class="section-subtitle">
-                Usa el botón <strong>↺ Reverso</strong> en cualquier carátula para voltear su caja
-                en 3D o abre el inspector completo para ver el disco y el tráiler oficial.
+                Pasa el cursor sobre cualquier caja para girar de la contraportada a la portada
+                oficial, haz clic para abrirla en 3D y pulsa el disco interior para extraerlo o
+                insertarlo.
               </p>
             </div>
           </div>
@@ -524,12 +588,20 @@
     <footer class="site-footer">
       <div class="container footer-grid">
         <div>
-          <span class="brand" style="font-size: 15px; margin-bottom: 5px">
-            <span class="brand-mark" aria-hidden="true">K</span>
-            <span>KRONO</span>
-          </span>
+          <img
+            src="assets/brand/krono-logo-primary.svg"
+            alt="KRONO Game Store & Archive"
+            class="brand-logo-dark"
+            style="height: 44px; width: auto; margin-bottom: 8px"
+          />
+          <img
+            src="assets/brand/krono-logo-light.svg"
+            alt="KRONO Game Store & Archive"
+            class="brand-logo-light"
+            style="height: 44px; width: auto; margin-bottom: 8px"
+          />
           <p style="margin: 6px 0 0; font-size: 12.5px; color: var(--ink-muted)">
-            © 2026 Krono Game Store — Evidencia TIC SENA GA1-37371-AA4-EV01. Portadas oficiales propiedad de sus respectivos estudios y editores.
+            © 2026 KRONO Game Store — Identidad y catálogo en evolución hacia MVP comercial. Portadas oficiales propiedad de sus respectivos estudios y editores.
           </p>
         </div>
 

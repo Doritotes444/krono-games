@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://doritotes444.github.io/krono-games/sitemap.xml
