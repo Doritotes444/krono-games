@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 960" width="720" height="960" role="img" aria-label="Ilustración minimalista de cámara de pruebas con portales">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ECEBE6"/>
+      <stop offset="55%" stop-color="#DDDAD2"/>
+      <stop offset="100%" stop-color="#C8C4BA"/>
+    </linearGradient>
+    <linearGradient id="shaft" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.72"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="cyanGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00B4E6" stop-opacity="0.45"/>
+      <stop offset="65%" stop-color="#00B4E6" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#00B4E6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="orangeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F26B1D" stop-opacity="0.48"/>
+      <stop offset="65%" stop-color="#F26B1D" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="#F26B1D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#B9B5AB"/>
+      <stop offset="100%" stop-color="#9A968C"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Base Concrete Chamber -->
+  <rect width="720" height="960" fill="url(#bgGrad)"/>
+
+  <!-- Architectural Chamber Perspective -->
+  <polygon points="0,0 180,140 180,760 0,960" fill="#D5D2CA"/>
+  <polygon points="720,0 540,140 540,760 720,960" fill="#CFCBC2"/>
+  <polygon points="180,760 540,760 720,960 0,960" fill="url(#floorGrad)"/>
+  <rect x="180" y="140" width="360" height="620" fill="#E6E4DE"/>
+
+  <!-- Subtle Concrete Panel Seams -->
+  <g stroke="#1C1C1B" stroke-opacity="0.12" stroke-width="1.5" fill="none">
+    <line x1="180" y1="140" x2="540" y2="140"/>
+    <line x1="180" y1="760" x2="540" y2="760"/>
+    <line x1="180" y1="140" x2="180" y2="760"/>
+    <line x1="540" y1="140" x2="540" y2="760"/>
+    <line x1="180" y1="346" x2="540" y2="346"/>
+    <line x1="180" y1="553" x2="540" y2="553"/>
+    <line x1="360" y1="140" x2="360" y2="760"/>
+    <line x1="0" y1="320" x2="180" y2="346"/>
+    <line x1="0" y1="640" x2="180" y2="553"/>
+    <line x1="720" y1="320" x2="540" y2="346"/>
+    <line x1="720" y1="640" x2="540" y2="553"/>
+    <line x1="180" y1="760" x2="0" y2="960"/>
+    <line x1="540" y1="760" x2="720" y2="960"/>
+    <line x1="360" y1="760" x2="360" y2="960"/>
+  </g>
+
+  <!-- Broken Ceiling Skylight & Sun Shaft -->
+  <polygon points="120,0 440,0 385,110 195,95" fill="#F9F9F6"/>
+  <polygon points="195,95 385,110 660,960 280,960" fill="url(#shaft)"/>
+
+  <!-- Cyan Portal (Left Wall Perspective) -->
+  <ellipse cx="104" cy="505" rx="90" ry="185" fill="url(#cyanGlow)"/>
+  <ellipse cx="104" cy="505" rx="46" ry="126" fill="#18222B" stroke="#00B4E6" stroke-width="11"/>
+  <ellipse cx="104" cy="505" rx="34" ry="110" fill="none" stroke="#8CE9FF" stroke-width="3" opacity="0.85"/>
+
+  <!-- Orange Portal (Back Right Panel) -->
+  <ellipse cx="452" cy="448" rx="115" ry="190" fill="url(#orangeGlow)"/>
+  <ellipse cx="452" cy="448" rx="64" ry="128" fill="#1E1815" stroke="#F26B1D" stroke-width="11"/>
+  <ellipse cx="452" cy="448" rx="50" ry="112" fill="none" stroke="#FFC39B" stroke-width="3" opacity="0.85"/>
+
+  <!-- Minimalist Weighted Companion Cube on Pedestal -->
+  <g transform="translate(262, 650)">
+    <rect x="0" y="72" width="120" height="38" fill="#6F6C65"/>
+    <rect x="18" y="0" width="84" height="74" rx="4" fill="#F3F2EE" stroke="#363532" stroke-width="2.5"/>
+    <rect x="14" y="-4" width="20" height="20" rx="2" fill="#C4C1B8" stroke="#363532" stroke-width="2"/>
+    <rect x="86" y="-4" width="20" height="20" rx="2" fill="#C4C1B8" stroke="#363532" stroke-width="2"/>
+    <rect x="14" y="58" width="20" height="20" rx="2" fill="#C4C1B8" stroke="#363532" stroke-width="2"/>
+    <rect x="86" y="58" width="20" height="20" rx="2" fill="#C4C1B8" stroke="#363532" stroke-width="2"/>
+    <circle cx="60" cy="37" r="17" fill="#E3E1DA" stroke="#363532" stroke-width="2"/>
+    <path d="M60 46 C50 38, 49 29, 55 29 C58 29, 60 32, 60 32 C60 32, 62 29, 65 29 C71 29, 70 38, 60 46 Z" fill="#D94126"/>
+  </g>
+
+  <!-- Overgrown Minimalist Botanical Vines -->
+  <g fill="none" stroke="#3B593F" stroke-linecap="round">
+    <path d="M210,88 C205,175 235,230 220,315" stroke-width="4"/>
+    <path d="M250,92 C265,160 245,210 278,270" stroke-width="3"/>
+    <path d="M350,104 C342,190 380,245 360,335" stroke-width="3.5"/>
+  </g>
+  <g fill="#4D7352">
+    <ellipse cx="204" cy="145" rx="14" ry="7" transform="rotate(-25 204 145)"/>
+    <ellipse cx="229" cy="195" rx="15" ry="7" transform="rotate(28 229 195)"/>
+    <ellipse cx="212" cy="252" rx="13" ry="6" transform="rotate(-20 212 252)"/>
+    <ellipse cx="268" cy="175" rx="13" ry="6" transform="rotate(35 268 175)"/>
+    <ellipse cx="262" cy="232" rx="14" ry="6" transform="rotate(-30 262 232)"/>
+    <ellipse cx="348" cy="168" rx="14" ry="7" transform="rotate(-22 348 168)"/>
+    <ellipse cx="372" cy="224" rx="15" ry="7" transform="rotate(24 372 224)"/>
+    <ellipse cx="355" cy="285" rx="13" ry="6" transform="rotate(-18 355 285)"/>
+  </g>
+  <g fill="#6B946F" opacity="0.85">
+    <ellipse cx="224" cy="126" rx="10" ry="5" transform="rotate(20 224 126)"/>
+    <ellipse cx="236" cy="284" rx="11" ry="5" transform="rotate(22 236 284)"/>
+    <ellipse cx="364" cy="142" rx="10" ry="5" transform="rotate(25 364 142)"/>
+    <ellipse cx="342" cy="318" rx="11" ry="5" transform="rotate(-28 342 318)"/>
+  </g>
+
+  <!-- Subtle Aperture Geometric Emblem on Back Wall -->
+  <g transform="translate(270, 240)" stroke="#1C1C1B" stroke-opacity="0.16" stroke-width="2" fill="none">
+    <circle cx="0" cy="0" r="34"/>
+    <circle cx="0" cy="0" r="14"/>
+    <line x1="-14" y1="0" x2="-34" y2="-12"/>
+    <line x1="14" y1="0" x2="34" y2="12"/>
+    <line x1="0" y1="-14" x2="12" y2="-34"/>
+    <line x1="0" y1="14" x2="-12" y2="34"/>
+  </g>
+</svg>

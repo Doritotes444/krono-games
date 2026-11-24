@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KRONO — Catálogo Minimalista y Tienda de Videojuegos</title>
+    <meta
+      name="description"
+      content="Krono es una tienda y archivo curado de videojuegos: nuevos lanzamientos, obras modernas esenciales y clásicos atemporales con recomendaciones personalizadas."
+    />
+    <meta name="theme-color" content="#F7F6F2" />
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <!-- ====================================================================
+         HEADER & NAVEGACIÓN
+         ==================================================================== -->
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="#inicio" class="brand" aria-label="Krono inicio">
+          <span class="brand-mark" aria-hidden="true">K</span>
+          <span>KRONO</span>
+        </a>
+
+        <nav class="main-nav" aria-label="Navegación principal">
+          <a href="#catalogo" data-nav-section="todos">Catálogo</a>
+          <a href="#catalogo" data-nav-section="parati">Para ti</a>
+          <a href="#epocas">Épocas</a>
+          <a href="#trailers">Tráilers</a>
+          <a href="#contacto">Contacto</a>
+        </nav>
+
+        <div class="header-actions">
+          <div class="currency-switch" role="group" aria-label="Selector de moneda">
+            <button type="button" id="btnCurrencyCOP" class="active" data-currency="COP">COP</button>
+            <button type="button" id="btnCurrencyUSD" data-currency="USD">USD</button>
+          </div>
+
+          <button
+            type="button"
+            id="btnThemeToggle"
+            class="icon-btn"
+            aria-label="Cambiar tema claro u oscuro"
+            title="Cambiar tema"
+          >
+            <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden>
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+            </svg>
+            <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            id="btnOpenWishlist"
+            class="icon-btn"
+            aria-label="Lista de deseos"
+            title="Lista de deseos"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+            <span id="wishlistBadge" class="badge-count" data-count="0">0</span>
+          </button>
+
+          <button
+            type="button"
+            id="btnOpenCart"
+            class="icon-btn"
+            aria-label="Abrir carrito de compras"
+            title="Carrito de compras"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span id="cartBadge" class="badge-count" data-count="0">0</span>
+          </button>
+
+          <button type="button" id="btnAccount" class="account-trigger" aria-label="Cuenta de usuario">
+            <span id="headerAvatar" class="avatar-circle" hidden>U</span>
+            <svg id="headerUserIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span id="headerAccountLabel" class="account-label">Iniciar sesión</span>
+          </button>
+
+          <button
+            type="button"
+            id="btnMobileMenu"
+            class="icon-btn mobile-menu-btn"
+            aria-label="Abrir menú móvil"
+            aria-expanded="false"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Menú Móvil -->
+    <div id="mobileNavDrawer" class="mobile-nav-drawer" aria-hidden="true">
+      <div class="mobile-nav-panel">
+        <div class="drawer-header" style="padding: 0 0 14px; border-bottom: 1px solid var(--border)">
+          <span class="brand">
+            <span class="brand-mark" aria-hidden="true">K</span>
+            <span>KRONO</span>
+          </span>
+          <button type="button" id="btnCloseMobileMenu" class="icon-btn" aria-label="Cerrar menú">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <nav class="mobile-nav-links" aria-label="Navegación móvil">
+          <a href="#catalogo" data-mobile-nav="todos">Catálogo completo</a>
+          <a href="#catalogo" data-mobile-nav="parati">Selección para ti</a>
+          <a href="#catalogo" data-mobile-nav="lanzamiento">Nuevos lanzamientos</a>
+          <a href="#catalogo" data-mobile-nav="moderno">Modernos esenciales</a>
+          <a href="#catalogo" data-mobile-nav="clasico">Clásicos atemporales</a>
+          <a href="#trailers" data-mobile-close>Tráilers oficiales</a>
+          <a href="#contacto" data-mobile-close>Contacto y showroom</a>
+        </nav>
+
+        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; align-items: center; justify-content: space-between">
+            <span style="font-size: 13px; color: var(--ink-secondary)">Moneda</span>
+            <div class="currency-switch" style="display: inline-flex">
+              <button type="button" class="active" data-currency="COP">COP</button>
+              <button type="button" data-currency="USD">USD</button>
+            </div>
+          </div>
+          <button type="button" id="btnMobilePersonalize" class="btn btn-secondary btn-full">
+            Personalizar mis gustos
+          </button>
+          <button type="button" id="btnMobileAuth" class="btn btn-primary btn-full">
+            Iniciar sesión o registrarme
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <main id="inicio">
+      <!-- ====================================================================
+           HERO EDITORIAL MINIMALISTA
+           ==================================================================== -->
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <p class="hero-kicker">Archivo curado y tienda digital · 1995 — 2026</p>
+            <h1 class="hero-title">
+              Videojuegos que <em>realmente</em> valen tu tiempo.
+            </h1>
+            <p class="hero-lead">
+              Reunimos en un solo lugar los nuevos lanzamientos más esperados, obras modernas
+              imprescindibles y clásicos históricos que siguen vigentes hoy. Sin ruido visual:
+              filtra por época, ajusta tus gustos y compra con entrega digital inmediata.
+            </p>
+
+            <div class="hero-actions">
+              <a href="#catalogo" class="btn btn-primary">Explorar catálogo</a>
+              <button type="button" id="btnHeroPersonalize" class="btn btn-secondary">
+                Personalizar mi experiencia
+              </button>
+            </div>
+
+            <div class="hero-metrics">
+              <div class="hero-metric">
+                <strong>1995–2026</strong>
+                <span>Tres décadas curadas</span>
+              </div>
+              <div class="hero-metric">
+                <strong>94.5 / 100</strong>
+                <span>Nota promedio</span>
+              </div>
+              <div class="hero-metric">
+                <strong>Inmediata</strong>
+                <span>Clave digital 24/7</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="hero-frame">
+              <img
+                src="assets/images/hero_editorial.webp"
+                alt="Ilustración editorial de viajero frente a ruinas flotantes al atardecer"
+                width="1600"
+                height="900"
+                fetchpriority="high"
+              />
+            </div>
+
+            <div class="hero-caption-card" id="heroSpotlight">
+              <div class="hero-caption-meta">
+                <span class="hero-caption-label" id="spotlightLabel">Selección de la semana · 2025</span>
+                <p class="hero-caption-title" id="spotlightTitle">Clair Obscur: Expedition 33</p>
+                <p class="hero-caption-sub" id="spotlightSub">RPG · Estrategia · 94/100</p>
+              </div>
+              <button type="button" id="btnSpotlightDetail" class="btn btn-secondary btn-sm">
+                Ver ficha y tráiler
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           BARRA DE EXPERIENCIA PERSONALIZADA
+           ==================================================================== -->
+      <section class="personalize-strip" aria-label="Personalización de catálogo">
+        <div class="container">
+          <div class="personalize-box">
+            <div class="personalize-copy">
+              <h2 id="personalizeHeading">Adapta Krono a tu forma de jugar</h2>
+              <p id="personalizeSummary">
+                Elige un perfil rápido o configura tus épocas, géneros y plataformas favoritas para
+                reordenar el catálogo a tu medida.
+              </p>
+            </div>
+
+            <div class="preset-chips" id="presetChips">
+              <!-- Renderizado dinámicamente desde js/app.js -->
+            </div>
+
+            <button type="button" id="btnOpenPrefs" class="btn btn-secondary btn-sm">
+              Ajuste fino
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           CATÁLOGO CON FILTROS POR SECCIONES
+           ==================================================================== -->
+      <section class="section" id="catalogo">
+        <div class="container">
+          <div class="section-header">
+            <div>
+              <p class="section-eyebrow">Catálogo curado</p>
+              <h2 class="section-title">Todos los juegos, sin relleno</h2>
+              <p class="section-subtitle">
+                Navega por lanzamientos actuales, referentes modernos o clásicos restaurados. Cada
+                título incluye nota curatorial, tráiler oficial y compra directa.
+              </p>
+            </div>
+          </div>
+
+          <!-- Pestañas por sección -->
+          <div class="section-tabs" role="tablist" aria-label="Filtrar por sección">
+            <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-section="todos">
+              Todos <span class="tab-count" id="countTodos">12</span>
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="parati">
+              Para ti <span class="tab-count" id="countParati">6</span>
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="lanzamiento">
+              Nuevos lanzamientos <span class="tab-count" id="countLanzamiento">4</span>
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="moderno">
+              Modernos esenciales <span class="tab-count" id="countModerno">4</span>
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="clasico">
+              Clásicos atemporales <span class="tab-count" id="countClasico">4</span>
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="ofertas">
+              Ofertas <span class="tab-count" id="countOfertas">11</span>
+            </button>
+          </div>
+
+          <!-- Barra de búsqueda y filtros combinados -->
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <label for="searchInput" class="sr-only">Buscar videojuegos</label>
+              <input
+                type="search"
+                id="searchInput"
+                class="input"
+                placeholder="Buscar título, estudio, año o género..."
+                autocomplete="off"
+              />
+              <span class="search-kbd" aria-hidden="true">/</span>
+            </div>
+
+            <div>
+              <label for="platformFilter" class="sr-only">Filtrar por plataforma</label>
+              <select id="platformFilter" class="select">
+                <option value="all">Todas las plataformas</option>
+                <option value="PC">PC</option>
+                <option value="PlayStation">PlayStation</option>
+                <option value="Xbox">Xbox</option>
+                <option value="Nintendo">Nintendo</option>
+                <option value="Retro">Retro / Restaurado</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="genreFilter" class="sr-only">Filtrar por género</label>
+              <select id="genreFilter" class="select">
+                <option value="all">Todos los géneros</option>
+                <option value="RPG">RPG</option>
+                <option value="Acción">Acción</option>
+                <option value="Aventura">Aventura</option>
+                <option value="Indie">Indie</option>
+                <option value="Estrategia">Estrategia</option>
+                <option value="Terror">Terror</option>
+                <option value="Puzzle">Puzzle</option>
+                <option value="Mundo Abierto">Mundo Abierto</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="sortSelect" class="sr-only">Ordenar resultados</label>
+              <select id="sortSelect" class="select">
+                <option value="recommended">Orden: Recomendados</option>
+                <option value="score">Mejor calificados</option>
+                <option value="newest">Más recientes primero</option>
+                <option value="oldest">Clásicos primero</option>
+                <option value="price-asc">Menor precio</option>
+                <option value="price-desc">Mayor precio</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="filter-meta-row">
+            <div class="filter-active-summary">
+              <span id="resultsCount">Mostrando 12 videojuegos</span>
+              <button type="button" id="btnResetFilters" class="link-btn" hidden>
+                Limpiar filtros
+              </button>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted)">
+              Cupón activo: SENA2026 (-20%) · KRONO15 (-15%)
+            </span>
+          </div>
+
+          <!-- Grid de videojuegos -->
+          <div class="games-grid" id="gamesGrid" aria-live="polite">
+            <!-- Renderizado dinámicamente desde js/app.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           ÉPOCAS Y TRÁILERS INTERACTIVOS
+           ==================================================================== -->
+      <section class="section surface-band" id="epocas">
+        <div class="container">
+          <div class="section-header">
+            <div>
+              <p class="section-eyebrow">Curaduría transversal</p>
+              <h2 class="section-title">Tres épocas, un mismo criterio de calidad</h2>
+              <p class="section-subtitle">
+                Un buen videojuego no caduca. Organizamos el catálogo para que descubras tanto el
+                estreno del mes como el clásico de 1995 que lo inspiró.
+              </p>
+            </div>
+          </div>
+
+          <div class="eras-grid">
+            <article class="era-card">
+              <span class="era-range">2025 — 2026</span>
+              <h3>Nuevos lanzamientos</h3>
+              <p>
+                Estrenos recientes y ediciones digitales verificadas. Filtramos el catálogo nuevo
+                para mostrar únicamente títulos con dirección sólida y gran recepción.
+              </p>
+              <button type="button" class="btn btn-secondary btn-sm" data-jump-section="lanzamiento">
+                Ver lanzamientos →
+              </button>
+            </article>
+
+            <article class="era-card">
+              <span class="era-range">2018 — 2024</span>
+              <h3>Modernos esenciales</h3>
+              <p>
+                Obras contemporáneas con expansiones completas y descuentos frecuentes. Ideales para
+                ponerte al día con lo mejor de la última generación.
+              </p>
+              <button type="button" class="btn btn-secondary btn-sm" data-jump-section="moderno">
+                Ver modernos →
+              </button>
+            </article>
+
+            <article class="era-card">
+              <span class="era-range">1995 — 2011</span>
+              <h3>Clásicos atemporales</h3>
+              <p>
+                Juegos antiguos preservados y compatibles con hardware actual. Pilares del diseño
+                interactivo que todo jugador merece experimentar al menos una vez.
+              </p>
+              <button type="button" class="btn btn-secondary btn-sm" data-jump-section="clasico">
+                Ver clásicos →
+              </button>
+            </article>
+          </div>
+
+          <div id="trailers" style="padding-top: 12px">
+            <div class="section-header">
+              <div>
+                <p class="section-eyebrow">Multimedia interactiva</p>
+                <h2 class="section-title">Tráilers seleccionados</h2>
+                <p class="section-subtitle">
+                  Reproduce avances oficiales directamente en la página sin ralentizar la carga.
+                </p>
+              </div>
+            </div>
+
+            <div class="trailers-grid" id="trailersGrid">
+              <!-- Renderizado dinámicamente desde js/app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           CONTACTO FUNCIONAL Y MAPA INTERACTIVO
+           ==================================================================== -->
+      <section class="section" id="contacto">
+        <div class="container">
+          <div class="section-header">
+            <div>
+              <p class="section-eyebrow">Atención y comunidad</p>
+              <h2 class="section-title">Contáctanos o sugiere un título</h2>
+              <p class="section-subtitle">
+                ¿Buscas una edición especial, soporte con una clave digital o quieres recomendar un
+                clásico para nuestro archivo? Escríbenos directamente.
+              </p>
+            </div>
+          </div>
+
+          <div class="contact-grid">
+            <div class="card-panel">
+              <form id="contactForm" novalidate>
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="contactName">Nombre completo</label>
+                    <input
+                      type="text"
+                      id="contactName"
+                      name="name"
+                      class="input"
+                      placeholder="Ej. Laura Gómez"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label for="contactEmail">Correo electrónico</label>
+                    <input
+                      type="email"
+                      id="contactEmail"
+                      name="email"
+                      class="input"
+                      placeholder="nombre@correo.com"
+                      required
+                    />
+                  </div>
+
+                  <div class="field field-full">
+                    <label for="contactTopic">Motivo del mensaje</label>
+                    <select id="contactTopic" name="topic" class="select">
+                      <option value="Soporte de compra y claves">Soporte de compra y claves digitales</option>
+                      <option value="Sugerir un juego clásico o moderno">Sugerir un juego clásico o moderno</option>
+                      <option value="Preventas y ediciones especiales">Preventas y ediciones especiales</option>
+                      <option value="Alianzas comerciales y prensa">Alianzas comerciales y prensa</option>
+                    </select>
+                  </div>
+
+                  <div class="field field-full">
+                    <label for="contactMessage">Mensaje</label>
+                    <textarea
+                      id="contactMessage"
+                      name="message"
+                      class="textarea"
+                      placeholder="Cuéntanos qué necesitas o qué videojuego recomiendas incluir..."
+                      required
+                    ></textarea>
+                  </div>
+
+                  <div class="field field-full">
+                    <label class="checkbox-row">
+                      <input type="checkbox" id="contactConsent" required />
+                      <span>
+                        Autorizo el uso de mis datos únicamente para responder esta solicitud de
+                        contacto.
+                      </span>
+                    </label>
+                  </div>
+
+                  <div class="field field-full" style="display: flex; flex-wrap: wrap; gap: 10px">
+                    <button type="submit" class="btn btn-primary">Enviar mensaje</button>
+                    <a
+                      href="mailto:soporte@kronogames.co?subject=Consulta%20desde%20Krono"
+                      class="btn btn-secondary"
+                    >
+                      Escribir por correo directo
+                    </a>
+                  </div>
+                </div>
+
+                <div id="contactFeedback" class="form-feedback" role="status" aria-live="polite"></div>
+              </form>
+            </div>
+
+            <div class="card-panel">
+              <h3 style="margin: 0 0 14px; font-size: 17px; letter-spacing: -0.02em">
+                Punto de experiencia y soporte
+              </h3>
+              <iframe
+                class="map-frame"
+                title="Ubicación del Showroom Krono en Bogotá, Colombia"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-74.0615%2C4.6615%2C-74.0465%2C4.6725&amp;layer=mapnik&amp;marker=4.6670%2C-74.0540"
+              ></iframe>
+
+              <ul class="contact-list">
+                <li>
+                  <span>Showroom presencial</span>
+                  <strong>Calle 82 # 12-40, Bogotá, CO</strong>
+                </li>
+                <li>
+                  <span>Horario de atención</span>
+                  <strong>Lun – Sáb · 9:00 a.m. – 7:00 p.m.</strong>
+                </li>
+                <li>
+                  <span>Correo de soporte</span>
+                  <a href="mailto:soporte@kronogames.co">soporte@kronogames.co</a>
+                </li>
+                <li>
+                  <span>Garantía digital</span>
+                  <strong>Entrega inmediata · Devolución 14 días</strong>
+                </li>
+              </ul>
+
+              <a
+                href="https://www.openstreetmap.org/?mlat=4.6670&mlon=-74.0540#map=16/4.6670/-74.0540"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-secondary btn-full btn-sm"
+              >
+                Abrir ubicación en el mapa ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ====================================================================
+         FOOTER
+         ==================================================================== -->
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <span class="brand" style="font-size: 15px; margin-bottom: 6px">
+            <span class="brand-mark" aria-hidden="true">K</span>
+            <span>KRONO</span>
+          </span>
+          <p style="margin: 6px 0 0; font-size: 13px; color: var(--ink-muted)">
+            © 2026 Krono — Portal minimalista de promoción y venta de videojuegos. Evidencia TIC SENA GA1-37371-AA4-EV01.
+          </p>
+        </div>
+
+        <div class="footer-links">
+          <a href="#catalogo">Catálogo</a>
+          <a href="#epocas">Épocas</a>
+          <a href="#trailers">Tráilers</a>
+          <a href="#contacto">Contacto</a>
+          <button type="button" id="btnFooterPrefs" class="link-btn" style="color: inherit; text-decoration: none; font-weight: 500">
+            Personalizar gustos
+          </button>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ====================================================================
+         MODAL: INICIO DE SESIÓN (GOOGLE, FACEBOOK, DISCORD, CORREO, TELÉFONO)
+         ==================================================================== -->
+    <div id="authModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <div>
+            <h2 id="authModalTitle">Accede a tu cuenta Krono</h2>
+            <p>Guarda tus gustos, favoritos y biblioteca de claves en cualquier dispositivo.</p>
+          </div>
+          <button type="button" class="icon-btn" data-close-modal="authModal" aria-label="Cerrar ventana">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Vista principal de inicio de sesión -->
+        <div id="authMainView">
+          <div class="social-auth-stack">
+            <button type="button" class="social-btn" data-social-provider="google">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.2-2.27H12v4.51h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.54-5.17 3.54-8.87z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.94-2.91l-3.88-3c-1.07.72-2.44 1.15-4.06 1.15-3.12 0-5.77-2.11-6.72-4.95H1.28v3.1A12 12 0 0 0 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.29A7.18 7.18 0 0 1 4.9 12c0-.79.14-1.56.38-2.29V6.61H1.28A12 12 0 0 0 0 12c0 1.94.46 3.77 1.28 5.39l4-3.1z"/>
+                <path fill="#EA4335" d="M12 4.76c1.76 0 3.34.61 4.58 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.28 6.61l4 3.1C6.23 6.87 8.88 4.76 12 4.76z"/>
+              </svg>
+              <span>Continuar con Google</span>
+            </button>
+
+            <button type="button" class="social-btn" data-social-provider="facebook">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#1877F2" d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.02 4.39 11.01 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.96h-1.51c-1.49 0-1.95.93-1.95 1.88v2.27h3.33l-.53 3.49h-2.8V24C19.61 23.08 24 18.09 24 12.07z"/>
+              </svg>
+              <span>Continuar con Facebook</span>
+            </button>
+
+            <button type="button" class="social-btn" data-social-provider="discord">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#5865F2" d="M20.32 4.37a19.8 19.8 0 0 0-4.89-1.52.07.07 0 0 0-.08.04c-.21.38-.44.87-.61 1.25a18.27 18.27 0 0 0-5.48 0c-.17-.39-.41-.87-.62-1.25a.08.08 0 0 0-.08-.04A19.74 19.74 0 0 0 3.68 4.37a.07.07 0 0 0-.03.03C.53 9.05-.32 13.58.1 18.06a.08.08 0 0 0 .03.06 19.9 19.9 0 0 0 5.99 3.03.08.08 0 0 0 .08-.03c.46-.63.87-1.3 1.22-2a.08.08 0 0 0-.04-.11 13.1 13.1 0 0 1-1.87-.89.08.08 0 0 1-.01-.13c.13-.09.25-.19.37-.29a.08.08 0 0 1 .08-.01c3.93 1.79 8.18 1.79 12.06 0a.08.08 0 0 1 .08.01c.12.1.24.2.37.29a.08.08 0 0 1-.01.13c-.6.35-1.22.65-1.87.89a.08.08 0 0 0-.04.11c.36.7.77 1.37 1.22 2a.08.08 0 0 0 .08.03 19.84 19.84 0 0 0 6-3.03.08.08 0 0 0 .03-.06c.5-5.18-.84-9.68-3.55-13.66a.06.06 0 0 0-.03-.03zM8.02 15.33c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.96 2.42-2.16 2.42zm7.97 0c-1.18 0-2.16-1.08-2.16-2.42 0-1.33.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.34-.95 2.42-2.16 2.42z"/>
+              </svg>
+              <span>Continuar con Discord</span>
+            </button>
+          </div>
+
+          <div class="auth-divider">o ingresa con tu cuenta</div>
+
+          <div class="segmented" role="tablist" aria-label="Método de acceso tradicional">
+            <button type="button" id="tabAuthEmail" class="active" data-auth-tab="email">Correo electrónico</button>
+            <button type="button" id="tabAuthPhone" data-auth-tab="phone">Teléfono (SMS)</button>
+          </div>
+
+          <!-- Formulario Correo -->
+          <form id="emailAuthForm" style="display: flex; flex-direction: column; gap: 14px">
+            <div class="field" id="emailNameField" hidden>
+              <label for="authFullName">Nombre completo</label>
+              <input type="text" id="authFullName" class="input" placeholder="Tu nombre o apodo gamer" />
+            </div>
+
+            <div class="field">
+              <label for="authEmail">Correo electrónico</label>
+              <input type="email" id="authEmail" class="input" placeholder="tu@correo.com" required />
+            </div>
+
+            <div class="field">
+              <label for="authPassword">Contraseña</label>
+              <input type="password" id="authPassword" class="input" placeholder="Mínimo 6 caracteres" minlength="6" required />
+            </div>
+
+            <button type="submit" id="btnEmailSubmit" class="btn btn-primary btn-full">
+              Iniciar sesión con correo
+            </button>
+
+            <p style="margin: 4px 0 0; font-size: 13px; text-align: center; color: var(--ink-secondary)">
+              <span id="emailTogglePrompt">¿No tienes cuenta todavía?</span>
+              <button type="button" id="btnToggleAuthMode" class="link-btn">Crear cuenta</button>
+            </p>
+          </form>
+
+          <!-- Formulario Teléfono -->
+          <form id="phoneAuthForm" hidden style="display: flex; flex-direction: column; gap: 14px">
+            <div id="phoneStep1" style="display: flex; flex-direction: column; gap: 14px">
+              <div class="field">
+                <label for="authPhoneNumber">Número de teléfono</label>
+                <div class="phone-row">
+                  <select id="authPhoneCode" class="select" aria-label="Indicativo de país">
+                    <option value="+57">+57 CO</option>
+                    <option value="+52">+52 MX</option>
+                    <option value="+34">+34 ES</option>
+                    <option value="+54">+54 AR</option>
+                    <option value="+56">+56 CL</option>
+                    <option value="+51">+51 PE</option>
+                    <option value="+1">+1 US</option>
+                  </select>
+                  <input
+                    type="tel"
+                    id="authPhoneNumber"
+                    class="input"
+                    placeholder="300 123 4567"
+                    inputmode="tel"
+                  />
+                </div>
+                <span class="field-hint">Te enviaremos un código de verificación de 6 dígitos.</span>
+              </div>
+              <button type="button" id="btnSendOtp" class="btn btn-primary btn-full">
+                Enviar código por SMS
+              </button>
+            </div>
+
+            <div id="phoneStep2" hidden style="display: flex; flex-direction: column; gap: 12px">
+              <div class="field">
+                <label for="otpInput0">Código de verificación</label>
+                <p id="phoneOtpHint" class="field-hint" style="margin: 0"></p>
+                <div class="otp-inputs">
+                  <input type="text" id="otpInput0" maxlength="1" inputmode="numeric" aria-label="Dígito 1" />
+                  <input type="text" id="otpInput1" maxlength="1" inputmode="numeric" aria-label="Dígito 2" />
+                  <input type="text" id="otpInput2" maxlength="1" inputmode="numeric" aria-label="Dígito 3" />
+                  <input type="text" id="otpInput3" maxlength="1" inputmode="numeric" aria-label="Dígito 4" />
+                  <input type="text" id="otpInput4" maxlength="1" inputmode="numeric" aria-label="Dígito 5" />
+                  <input type="text" id="otpInput5" maxlength="1" inputmode="numeric" aria-label="Dígito 6" />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full">Verificar e ingresar</button>
+              <button type="button" id="btnBackPhone" class="btn btn-ghost btn-sm">
+                ← Cambiar número
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Paso 2: Confirmación de proveedor social (Google / Facebook / Discord) -->
+        <div id="authSocialView" hidden>
+          <form id="socialConfirmForm" class="social-confirm-box">
+            <span id="socialProviderPill" class="provider-pill">Google</span>
+            <div>
+              <h3 id="socialConfirmHeading" style="margin: 0 0 4px; font-size: 16px">
+                Autorizar acceso con Google
+              </h3>
+              <p style="margin: 0; font-size: 13px; color: var(--ink-secondary)">
+                Confirma tu perfil para sincronizar tu experiencia personalizada, lista de deseos y
+                biblioteca en Krono.
+              </p>
+            </div>
+
+            <div class="field">
+              <label for="socialNameInput">Nombre visible</label>
+              <input type="text" id="socialNameInput" class="input" required />
+            </div>
+
+            <div class="field">
+              <label for="socialHandleInput">Cuenta / usuario</label>
+              <input type="text" id="socialHandleInput" class="input" required />
+            </div>
+
+            <p class="field-hint" style="margin: 0">
+              Entorno demostrativo estático (GitHub Pages): la sesión se almacena de forma local y
+              segura en tu navegador, lista para conectarse a credenciales OAuth 2.0 reales.
+            </p>
+
+            <div style="display: flex; gap: 10px">
+              <button type="button" id="btnBackSocial" class="btn btn-secondary">Volver</button>
+              <button type="submit" class="btn btn-primary" style="flex: 1">
+                Confirmar y continuar
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL: PERSONALIZACIÓN DE EXPERIENCIA
+         ==================================================================== -->
+    <div id="prefsModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="prefsModalTitle" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <div>
+            <h2 id="prefsModalTitle">Personaliza tu experiencia</h2>
+            <p>Ajusta tus preferencias para calcular la afinidad de cada juego en tiempo real.</p>
+          </div>
+          <button type="button" class="icon-btn" data-close-modal="prefsModal" aria-label="Cerrar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="pref-group">
+          <h3>1. ¿Qué épocas disfrutas más?</h3>
+          <div class="pref-options" id="prefEras"></div>
+        </div>
+
+        <div class="pref-group">
+          <h3>2. Tus géneros favoritos</h3>
+          <div class="pref-options" id="prefGenres"></div>
+        </div>
+
+        <div class="pref-group">
+          <h3>3. Plataformas donde juegas</h3>
+          <div class="pref-options" id="prefPlatforms"></div>
+        </div>
+
+        <div class="pref-group">
+          <h3>4. Prioridad de precio</h3>
+          <div class="pref-options" id="prefBudget">
+            <button type="button" class="chip" data-budget="all">Todo el catálogo</button>
+            <button type="button" class="chip" data-budget="ofertas">Priorizar ofertas y económicos</button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 24px">
+          <button type="button" id="btnClearPrefs" class="btn btn-secondary">Restablecer</button>
+          <button type="button" id="btnSavePrefs" class="btn btn-primary" style="flex: 1">
+            Aplicar a mi catálogo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL: FICHA DE JUEGO Y TRÁILER OFICIAL
+         ==================================================================== -->
+    <div id="gameModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-lg">
+        <div class="modal-header">
+          <div>
+            <p class="detail-kicker" id="detailKicker">Nuevo lanzamiento · 2025</p>
+            <h2 id="detailTitle" class="detail-title">Título del juego</h2>
+          </div>
+          <button type="button" class="icon-btn" data-close-modal="gameModal" aria-label="Cerrar ficha">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div id="detailContent"></div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         DRAWER: CARRITO DE COMPRAS Y CHECKOUT DIGITAL
+         ==================================================================== -->
+    <div id="cartDrawer" class="drawer-backdrop" role="dialog" aria-modal="true" aria-labelledby="cartDrawerTitle" aria-hidden="true">
+      <div class="drawer-panel">
+        <div class="drawer-header">
+          <h2 id="cartDrawerTitle">Tu carrito</h2>
+          <button type="button" class="icon-btn" data-close-drawer="cartDrawer" aria-label="Cerrar carrito">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="drawer-body" id="cartBody"></div>
+        <div class="drawer-footer" id="cartFooter"></div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         DRAWER: PERFIL, LISTA DE DESEOS Y BIBLIOTECA
+         ==================================================================== -->
+    <div id="accountDrawer" class="drawer-backdrop" role="dialog" aria-modal="true" aria-labelledby="accountDrawerTitle" aria-hidden="true">
+      <div class="drawer-panel">
+        <div class="drawer-header">
+          <h2 id="accountDrawerTitle">Tu espacio en Krono</h2>
+          <button type="button" class="icon-btn" data-close-drawer="accountDrawer" aria-label="Cerrar perfil">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="drawer-body" id="accountBody"></div>
+        <div class="drawer-footer" id="accountFooter"></div>
+      </div>
+    </div>
+
+    <!-- Contenedor de notificaciones toast -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
