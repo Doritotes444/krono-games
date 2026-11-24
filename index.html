@@ -1,19 +1,19 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KRONO — Catálogo Minimalista y Tienda de Videojuegos</title>
+    <title>KRONO — Tienda Minimalista de Videojuegos, Cajas 3D y Noticias</title>
     <meta
       name="description"
-      content="Krono es una tienda y archivo curado de videojuegos: nuevos lanzamientos, obras modernas esenciales y clásicos atemporales con recomendaciones personalizadas."
+      content="Krono es una tienda y vitrina 3D de videojuegos inspirada en Aurora (Xbox 360): portadas oficiales reales, contraportadas, discos físicos, lanzamientos, clásicos y noticias."
     />
-    <meta name="theme-color" content="#F7F6F2" />
+    <meta name="theme-color" content="#0A0D12" />
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/styles.css" />
@@ -24,15 +24,17 @@
          ==================================================================== -->
     <header class="site-header">
       <div class="container header-inner">
-        <a href="#inicio" class="brand" aria-label="Krono inicio">
+        <a href="#aurora" class="brand" aria-label="Krono inicio">
           <span class="brand-mark" aria-hidden="true">K</span>
           <span>KRONO</span>
+          <span class="brand-sub">GAME STORE</span>
         </a>
 
         <nav class="main-nav" aria-label="Navegación principal">
+          <a href="#aurora">Aurora 3D</a>
           <a href="#catalogo" data-nav-section="todos">Catálogo</a>
           <a href="#catalogo" data-nav-section="parati">Para ti</a>
-          <a href="#epocas">Épocas</a>
+          <a href="#noticias">Noticias</a>
           <a href="#trailers">Tráilers</a>
           <a href="#contacto">Contacto</a>
         </nav>
@@ -47,14 +49,14 @@
             type="button"
             id="btnThemeToggle"
             class="icon-btn"
-            aria-label="Cambiar tema claro u oscuro"
+            aria-label="Cambiar tema oscuro o claro"
             title="Cambiar tema"
           >
-            <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden>
+            <svg id="iconSun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="4"></circle>
               <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
             </svg>
-            <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg id="iconMoon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" hidden>
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
           </button>
@@ -127,16 +129,18 @@
         </div>
 
         <nav class="mobile-nav-links" aria-label="Navegación móvil">
+          <a href="#aurora" data-mobile-close>Vitrina Aurora 3D</a>
           <a href="#catalogo" data-mobile-nav="todos">Catálogo completo</a>
           <a href="#catalogo" data-mobile-nav="parati">Selección para ti</a>
           <a href="#catalogo" data-mobile-nav="lanzamiento">Nuevos lanzamientos</a>
           <a href="#catalogo" data-mobile-nav="moderno">Modernos esenciales</a>
-          <a href="#catalogo" data-mobile-nav="clasico">Clásicos atemporales</a>
+          <a href="#catalogo" data-mobile-nav="clasico">Clásicos y Xbox 360</a>
+          <a href="#noticias" data-mobile-close>Noticias y novedades</a>
           <a href="#trailers" data-mobile-close>Tráilers oficiales</a>
           <a href="#contacto" data-mobile-close>Contacto y showroom</a>
         </nav>
 
-        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px">
+        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
           <div style="display: flex; align-items: center; justify-content: space-between">
             <span style="font-size: 13px; color: var(--ink-secondary)">Moneda</span>
             <div class="currency-switch" style="display: inline-flex">
@@ -154,65 +158,70 @@
       </div>
     </div>
 
-    <main id="inicio">
+    <main>
       <!-- ====================================================================
-           HERO EDITORIAL MINIMALISTA
+           VITRINA AURORA 3D (CARÁTULAS REALES, CONTRAPORTADA Y DISCO)
            ==================================================================== -->
-      <section class="hero">
-        <div class="container hero-grid">
-          <div>
-            <p class="hero-kicker">Archivo curado y tienda digital · 1995 — 2026</p>
-            <h1 class="hero-title">
-              Videojuegos que <em>realmente</em> valen tu tiempo.
-            </h1>
-            <p class="hero-lead">
-              Reunimos en un solo lugar los nuevos lanzamientos más esperados, obras modernas
-              imprescindibles y clásicos históricos que siguen vigentes hoy. Sin ruido visual:
-              filtra por época, ajusta tus gustos y compra con entrega digital inmediata.
-            </p>
+      <section class="aurora-hero" id="aurora">
+        <div class="aurora-backdrop" aria-hidden="true">
+          <img id="auroraBgImg" src="" alt="" />
+        </div>
 
-            <div class="hero-actions">
-              <a href="#catalogo" class="btn btn-primary">Explorar catálogo</a>
-              <button type="button" id="btnHeroPersonalize" class="btn btn-secondary">
-                Personalizar mi experiencia
-              </button>
+        <div class="container aurora-inner">
+          <div class="aurora-top-bar">
+            <div>
+              <p class="section-eyebrow">Vitrina física 3D estilo Aurora · 1995 — 2026</p>
+              <h1 class="aurora-title">Carátulas reales. Videojuegos que valen la pena.</h1>
+              <p class="aurora-subtitle">
+                Explora lanzamientos, modernos y clásicos como en tu consola: gira cualquier caja
+                para ver su contraportada real, extrae el disco físico y compra al instante.
+              </p>
             </div>
 
-            <div class="hero-metrics">
-              <div class="hero-metric">
-                <strong>1995–2026</strong>
-                <span>Tres décadas curadas</span>
-              </div>
-              <div class="hero-metric">
-                <strong>94.5 / 100</strong>
-                <span>Nota promedio</span>
-              </div>
-              <div class="hero-metric">
-                <strong>Inmediata</strong>
-                <span>Clave digital 24/7</span>
-              </div>
+            <div class="aurora-controls-hint" aria-hidden="true">
+              <span class="kbd">←</span>
+              <span class="kbd">→</span>
+              <span>Navegar carátulas</span>
+              <span class="kbd">/</span>
+              <span>Buscar</span>
             </div>
           </div>
 
-          <div class="hero-visual">
-            <div class="hero-frame">
-              <img
-                src="assets/images/hero_editorial.webp"
-                alt="Ilustración editorial de viajero frente a ruinas flotantes al atardecer"
-                width="1600"
-                height="900"
-                fetchpriority="high"
-              />
+          <!-- CoverFlow 3D -->
+          <div class="coverflow-stage">
+            <button type="button" id="cfPrev" class="cf-arrow prev" aria-label="Juego anterior">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+
+            <div class="coverflow-track" id="coverflowTrack" aria-live="polite">
+              <!-- Renderizado dinámicamente desde js/app.js -->
             </div>
 
-            <div class="hero-caption-card" id="heroSpotlight">
-              <div class="hero-caption-meta">
-                <span class="hero-caption-label" id="spotlightLabel">Selección de la semana · 2025</span>
-                <p class="hero-caption-title" id="spotlightTitle">Clair Obscur: Expedition 33</p>
-                <p class="hero-caption-sub" id="spotlightSub">RPG · Estrategia · 94/100</p>
-              </div>
-              <button type="button" id="btnSpotlightDetail" class="btn btn-secondary btn-sm">
-                Ver ficha y tráiler
+            <button type="button" id="cfNext" class="cf-arrow next" aria-label="Siguiente juego">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+
+          <!-- HUD de la caja enfocada en Aurora -->
+          <div class="aurora-hud" id="auroraHud">
+            <div class="aurora-hud-info">
+              <div class="aurora-hud-kicker" id="hudKicker"></div>
+              <h2 class="aurora-hud-title" id="hudTitle">Cargando vitrina...</h2>
+              <p class="aurora-hud-sub" id="hudSub"></p>
+            </div>
+
+            <div class="aurora-hud-actions">
+              <button type="button" id="btnHudFlip" class="btn btn-secondary btn-sm">
+                ↺ Contraportada
+              </button>
+              <button type="button" id="btnHudDisc" class="btn btn-secondary btn-sm">
+                ◉ Sacar disco
+              </button>
+              <button type="button" id="btnHudInspect" class="btn btn-secondary btn-sm">
+                Ficha y tráiler
+              </button>
+              <button type="button" id="btnHudCart" class="btn btn-primary btn-sm">
+                Añadir al carrito
               </button>
             </div>
           </div>
@@ -228,14 +237,12 @@
             <div class="personalize-copy">
               <h2 id="personalizeHeading">Adapta Krono a tu forma de jugar</h2>
               <p id="personalizeSummary">
-                Elige un perfil rápido o configura tus épocas, géneros y plataformas favoritas para
+                Elige un perfil rápido o configura tus épocas, géneros y consolas favoritas para
                 reordenar el catálogo a tu medida.
               </p>
             </div>
 
-            <div class="preset-chips" id="presetChips">
-              <!-- Renderizado dinámicamente desde js/app.js -->
-            </div>
+            <div class="preset-chips" id="presetChips"></div>
 
             <button type="button" id="btnOpenPrefs" class="btn btn-secondary btn-sm">
               Ajuste fino
@@ -245,22 +252,21 @@
       </section>
 
       <!-- ====================================================================
-           CATÁLOGO CON FILTROS POR SECCIONES
+           CATÁLOGO DE CAJAS FÍSICAS CON FILTROS POR SECCIONES
            ==================================================================== -->
       <section class="section" id="catalogo">
         <div class="container">
           <div class="section-header">
             <div>
-              <p class="section-eyebrow">Catálogo curado</p>
-              <h2 class="section-title">Todos los juegos, sin relleno</h2>
+              <p class="section-eyebrow">Biblioteca y tienda</p>
+              <h2 class="section-title">Todos los juegos en edición física y digital</h2>
               <p class="section-subtitle">
-                Navega por lanzamientos actuales, referentes modernos o clásicos restaurados. Cada
-                título incluye nota curatorial, tráiler oficial y compra directa.
+                Usa el botón <strong>↺ Reverso</strong> en cualquier carátula para voltear su caja
+                en 3D o abre el inspector completo para ver el disco y el tráiler oficial.
               </p>
             </div>
           </div>
 
-          <!-- Pestañas por sección -->
           <div class="section-tabs" role="tablist" aria-label="Filtrar por sección">
             <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-section="todos">
               Todos <span class="tab-count" id="countTodos">12</span>
@@ -282,7 +288,6 @@
             </button>
           </div>
 
-          <!-- Barra de búsqueda y filtros combinados -->
           <div class="filter-bar">
             <div class="search-wrap">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -294,7 +299,7 @@
                 type="search"
                 id="searchInput"
                 class="input"
-                placeholder="Buscar título, estudio, año o género..."
+                placeholder="Buscar título, estudio, año o consola..."
                 autocomplete="off"
               />
               <span class="search-kbd" aria-hidden="true">/</span>
@@ -306,9 +311,9 @@
                 <option value="all">Todas las plataformas</option>
                 <option value="PC">PC</option>
                 <option value="PlayStation">PlayStation</option>
-                <option value="Xbox">Xbox</option>
+                <option value="Xbox">Xbox / Xbox 360</option>
                 <option value="Nintendo">Nintendo</option>
-                <option value="Retro">Retro / Restaurado</option>
+                <option value="Retro">Retro / Clásicos</option>
               </select>
             </div>
 
@@ -332,7 +337,7 @@
               <select id="sortSelect" class="select">
                 <option value="recommended">Orden: Recomendados</option>
                 <option value="score">Mejor calificados</option>
-                <option value="newest">Más recientes primero</option>
+                <option value="newest">Más recientes</option>
                 <option value="oldest">Clásicos primero</option>
                 <option value="price-asc">Menor precio</option>
                 <option value="price-desc">Mayor precio</option>
@@ -347,102 +352,75 @@
                 Limpiar filtros
               </button>
             </div>
-            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-muted)">
-              Cupón activo: SENA2026 (-20%) · KRONO15 (-15%)
+            <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-muted)">
+              Cupones activos: SENA2026 (-20%) · KRONO15 (-15%)
             </span>
           </div>
 
-          <!-- Grid de videojuegos -->
-          <div class="games-grid" id="gamesGrid" aria-live="polite">
-            <!-- Renderizado dinámicamente desde js/app.js -->
-          </div>
+          <div class="games-grid" id="gamesGrid" aria-live="polite"></div>
         </div>
       </section>
 
       <!-- ====================================================================
-           ÉPOCAS Y TRÁILERS INTERACTIVOS
+           NOTICIAS Y NOVEDADES DEL MUNDO VIDEOJUEGOS
            ==================================================================== -->
-      <section class="section surface-band" id="epocas">
+      <section class="section surface-band" id="noticias">
         <div class="container">
           <div class="section-header">
             <div>
-              <p class="section-eyebrow">Curaduría transversal</p>
-              <h2 class="section-title">Tres épocas, un mismo criterio de calidad</h2>
+              <p class="section-eyebrow">Actualidad gamer</p>
+              <h2 class="section-title">Noticias y novedades</h2>
               <p class="section-subtitle">
-                Un buen videojuego no caduca. Organizamos el catálogo para que descubras tanto el
-                estreno del mes como el clásico de 1995 que lo inspiró.
+                Parches recientes, anuncios de expansiones, cultura retro y guías de ofertas
+                curadas por nuestro equipo editorial.
               </p>
             </div>
           </div>
 
-          <div class="eras-grid">
-            <article class="era-card">
-              <span class="era-range">2025 — 2026</span>
-              <h3>Nuevos lanzamientos</h3>
-              <p>
-                Estrenos recientes y ediciones digitales verificadas. Filtramos el catálogo nuevo
-                para mostrar únicamente títulos con dirección sólida y gran recepción.
-              </p>
-              <button type="button" class="btn btn-secondary btn-sm" data-jump-section="lanzamiento">
-                Ver lanzamientos →
-              </button>
-            </article>
-
-            <article class="era-card">
-              <span class="era-range">2018 — 2024</span>
-              <h3>Modernos esenciales</h3>
-              <p>
-                Obras contemporáneas con expansiones completas y descuentos frecuentes. Ideales para
-                ponerte al día con lo mejor de la última generación.
-              </p>
-              <button type="button" class="btn btn-secondary btn-sm" data-jump-section="moderno">
-                Ver modernos →
-              </button>
-            </article>
-
-            <article class="era-card">
-              <span class="era-range">1995 — 2011</span>
-              <h3>Clásicos atemporales</h3>
-              <p>
-                Juegos antiguos preservados y compatibles con hardware actual. Pilares del diseño
-                interactivo que todo jugador merece experimentar al menos una vez.
-              </p>
-              <button type="button" class="btn btn-secondary btn-sm" data-jump-section="clasico">
-                Ver clásicos →
-              </button>
-            </article>
+          <div class="news-filters" id="newsFilters" role="group" aria-label="Filtrar noticias por categoría">
+            <button type="button" class="chip active" data-news-cat="all">Todas</button>
+            <button type="button" class="chip" data-news-cat="Lanzamientos">Lanzamientos</button>
+            <button type="button" class="chip" data-news-cat="Novedades">Novedades</button>
+            <button type="button" class="chip" data-news-cat="Retro">Retro</button>
+            <button type="button" class="chip" data-news-cat="Ofertas">Ofertas</button>
           </div>
 
-          <div id="trailers" style="padding-top: 12px">
-            <div class="section-header">
-              <div>
-                <p class="section-eyebrow">Multimedia interactiva</p>
-                <h2 class="section-title">Tráilers seleccionados</h2>
-                <p class="section-subtitle">
-                  Reproduce avances oficiales directamente en la página sin ralentizar la carga.
-                </p>
-              </div>
-            </div>
+          <div class="news-grid" id="newsGrid"></div>
+        </div>
+      </section>
 
-            <div class="trailers-grid" id="trailersGrid">
-              <!-- Renderizado dinámicamente desde js/app.js -->
+      <!-- ====================================================================
+           TRÁILERS OFICIALES INTERACTIVOS
+           ==================================================================== -->
+      <section class="section" id="trailers">
+        <div class="container">
+          <div class="section-header">
+            <div>
+              <p class="section-eyebrow">Multimedia en vivo</p>
+              <h2 class="section-title">Tráilers oficiales destacados</h2>
+              <p class="section-subtitle">
+                Un vistazo en movimiento a tres generaciones: estreno 2025, obra moderna y clásico
+                legendario de la era Xbox 360.
+              </p>
             </div>
           </div>
+
+          <div class="trailers-grid" id="trailersGrid"></div>
         </div>
       </section>
 
       <!-- ====================================================================
            CONTACTO FUNCIONAL Y MAPA INTERACTIVO
            ==================================================================== -->
-      <section class="section" id="contacto">
+      <section class="section surface-band" id="contacto">
         <div class="container">
           <div class="section-header">
             <div>
-              <p class="section-eyebrow">Atención y comunidad</p>
-              <h2 class="section-title">Contáctanos o sugiere un título</h2>
+              <p class="section-eyebrow">Soporte y showroom</p>
+              <h2 class="section-title">Contáctanos o sugiere un juego</h2>
               <p class="section-subtitle">
-                ¿Buscas una edición especial, soporte con una clave digital o quieres recomendar un
-                clásico para nuestro archivo? Escríbenos directamente.
+                ¿Buscas una edición física coleccionista, soporte con tu clave o quieres proponer un
+                clásico? Escríbenos directamente.
               </p>
             </div>
           </div>
@@ -453,26 +431,12 @@
                 <div class="form-grid">
                   <div class="field">
                     <label for="contactName">Nombre completo</label>
-                    <input
-                      type="text"
-                      id="contactName"
-                      name="name"
-                      class="input"
-                      placeholder="Ej. Laura Gómez"
-                      required
-                    />
+                    <input type="text" id="contactName" name="name" class="input" placeholder="Ej. Laura Gómez" required />
                   </div>
 
                   <div class="field">
                     <label for="contactEmail">Correo electrónico</label>
-                    <input
-                      type="email"
-                      id="contactEmail"
-                      name="email"
-                      class="input"
-                      placeholder="nombre@correo.com"
-                      required
-                    />
+                    <input type="email" id="contactEmail" name="email" class="input" placeholder="nombre@correo.com" required />
                   </div>
 
                   <div class="field field-full">
@@ -480,39 +444,27 @@
                     <select id="contactTopic" name="topic" class="select">
                       <option value="Soporte de compra y claves">Soporte de compra y claves digitales</option>
                       <option value="Sugerir un juego clásico o moderno">Sugerir un juego clásico o moderno</option>
-                      <option value="Preventas y ediciones especiales">Preventas y ediciones especiales</option>
+                      <option value="Preventas y cajas físicas coleccionistas">Preventas y cajas físicas coleccionistas</option>
                       <option value="Alianzas comerciales y prensa">Alianzas comerciales y prensa</option>
                     </select>
                   </div>
 
                   <div class="field field-full">
                     <label for="contactMessage">Mensaje</label>
-                    <textarea
-                      id="contactMessage"
-                      name="message"
-                      class="textarea"
-                      placeholder="Cuéntanos qué necesitas o qué videojuego recomiendas incluir..."
-                      required
-                    ></textarea>
+                    <textarea id="contactMessage" name="message" class="textarea" placeholder="Cuéntanos qué necesitas o qué título recomiendas sumar al catálogo..." required></textarea>
                   </div>
 
                   <div class="field field-full">
                     <label class="checkbox-row">
                       <input type="checkbox" id="contactConsent" required />
-                      <span>
-                        Autorizo el uso de mis datos únicamente para responder esta solicitud de
-                        contacto.
-                      </span>
+                      <span>Autorizo el uso de mis datos únicamente para responder esta solicitud de contacto.</span>
                     </label>
                   </div>
 
                   <div class="field field-full" style="display: flex; flex-wrap: wrap; gap: 10px">
                     <button type="submit" class="btn btn-primary">Enviar mensaje</button>
-                    <a
-                      href="mailto:soporte@kronogames.co?subject=Consulta%20desde%20Krono"
-                      class="btn btn-secondary"
-                    >
-                      Escribir por correo directo
+                    <a href="mailto:soporte@kronogames.co?subject=Consulta%20desde%20Krono" class="btn btn-secondary">
+                      Correo directo
                     </a>
                   </div>
                 </div>
@@ -522,8 +474,8 @@
             </div>
 
             <div class="card-panel">
-              <h3 style="margin: 0 0 14px; font-size: 17px; letter-spacing: -0.02em">
-                Punto de experiencia y soporte
+              <h3 style="margin: 0 0 12px; font-size: 16.5px; letter-spacing: -0.02em">
+                Showroom físico y soporte
               </h3>
               <iframe
                 class="map-frame"
@@ -547,8 +499,8 @@
                   <a href="mailto:soporte@kronogames.co">soporte@kronogames.co</a>
                 </li>
                 <li>
-                  <span>Garantía digital</span>
-                  <strong>Entrega inmediata · Devolución 14 días</strong>
+                  <span>Garantía Krono</span>
+                  <strong>Clave inmediata · Devolución 14 días</strong>
                 </li>
               </ul>
 
@@ -572,18 +524,19 @@
     <footer class="site-footer">
       <div class="container footer-grid">
         <div>
-          <span class="brand" style="font-size: 15px; margin-bottom: 6px">
+          <span class="brand" style="font-size: 15px; margin-bottom: 5px">
             <span class="brand-mark" aria-hidden="true">K</span>
             <span>KRONO</span>
           </span>
-          <p style="margin: 6px 0 0; font-size: 13px; color: var(--ink-muted)">
-            © 2026 Krono — Portal minimalista de promoción y venta de videojuegos. Evidencia TIC SENA GA1-37371-AA4-EV01.
+          <p style="margin: 6px 0 0; font-size: 12.5px; color: var(--ink-muted)">
+            © 2026 Krono Game Store — Evidencia TIC SENA GA1-37371-AA4-EV01. Portadas oficiales propiedad de sus respectivos estudios y editores.
           </p>
         </div>
 
         <div class="footer-links">
+          <a href="#aurora">Aurora 3D</a>
           <a href="#catalogo">Catálogo</a>
-          <a href="#epocas">Épocas</a>
+          <a href="#noticias">Noticias</a>
           <a href="#trailers">Tráilers</a>
           <a href="#contacto">Contacto</a>
           <button type="button" id="btnFooterPrefs" class="link-btn" style="color: inherit; text-decoration: none; font-weight: 500">
@@ -601,14 +554,13 @@
         <div class="modal-header">
           <div>
             <h2 id="authModalTitle">Accede a tu cuenta Krono</h2>
-            <p>Guarda tus gustos, favoritos y biblioteca de claves en cualquier dispositivo.</p>
+            <p>Sincroniza tus gustos, lista de deseos y biblioteca de claves.</p>
           </div>
           <button type="button" class="icon-btn" data-close-modal="authModal" aria-label="Cerrar ventana">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
 
-        <!-- Vista principal de inicio de sesión -->
         <div id="authMainView">
           <div class="social-auth-stack">
             <button type="button" class="social-btn" data-social-provider="google">
@@ -643,11 +595,10 @@
             <button type="button" id="tabAuthPhone" data-auth-tab="phone">Teléfono (SMS)</button>
           </div>
 
-          <!-- Formulario Correo -->
-          <form id="emailAuthForm" style="display: flex; flex-direction: column; gap: 14px">
+          <form id="emailAuthForm" style="display: flex; flex-direction: column; gap: 13px">
             <div class="field" id="emailNameField" hidden>
               <label for="authFullName">Nombre completo</label>
-              <input type="text" id="authFullName" class="input" placeholder="Tu nombre o apodo gamer" />
+              <input type="text" id="authFullName" class="input" placeholder="Tu nombre o gamertag" />
             </div>
 
             <div class="field">
@@ -664,15 +615,14 @@
               Iniciar sesión con correo
             </button>
 
-            <p style="margin: 4px 0 0; font-size: 13px; text-align: center; color: var(--ink-secondary)">
+            <p style="margin: 2px 0 0; font-size: 13px; text-align: center; color: var(--ink-secondary)">
               <span id="emailTogglePrompt">¿No tienes cuenta todavía?</span>
               <button type="button" id="btnToggleAuthMode" class="link-btn">Crear cuenta</button>
             </p>
           </form>
 
-          <!-- Formulario Teléfono -->
-          <form id="phoneAuthForm" hidden style="display: flex; flex-direction: column; gap: 14px">
-            <div id="phoneStep1" style="display: flex; flex-direction: column; gap: 14px">
+          <form id="phoneAuthForm" hidden style="display: flex; flex-direction: column; gap: 13px">
+            <div id="phoneStep1" style="display: flex; flex-direction: column; gap: 13px">
               <div class="field">
                 <label for="authPhoneNumber">Número de teléfono</label>
                 <div class="phone-row">
@@ -685,13 +635,7 @@
                     <option value="+51">+51 PE</option>
                     <option value="+1">+1 US</option>
                   </select>
-                  <input
-                    type="tel"
-                    id="authPhoneNumber"
-                    class="input"
-                    placeholder="300 123 4567"
-                    inputmode="tel"
-                  />
+                  <input type="tel" id="authPhoneNumber" class="input" placeholder="300 123 4567" inputmode="tel" />
                 </div>
                 <span class="field-hint">Te enviaremos un código de verificación de 6 dígitos.</span>
               </div>
@@ -714,47 +658,34 @@
                 </div>
               </div>
               <button type="submit" class="btn btn-primary btn-full">Verificar e ingresar</button>
-              <button type="button" id="btnBackPhone" class="btn btn-ghost btn-sm">
-                ← Cambiar número
-              </button>
+              <button type="button" id="btnBackPhone" class="btn btn-ghost btn-sm">← Cambiar número</button>
             </div>
           </form>
         </div>
 
-        <!-- Paso 2: Confirmación de proveedor social (Google / Facebook / Discord) -->
         <div id="authSocialView" hidden>
           <form id="socialConfirmForm" class="social-confirm-box">
             <span id="socialProviderPill" class="provider-pill">Google</span>
             <div>
-              <h3 id="socialConfirmHeading" style="margin: 0 0 4px; font-size: 16px">
-                Autorizar acceso con Google
-              </h3>
+              <h3 id="socialConfirmHeading" style="margin: 0 0 4px; font-size: 16px">Autorizar acceso</h3>
               <p style="margin: 0; font-size: 13px; color: var(--ink-secondary)">
-                Confirma tu perfil para sincronizar tu experiencia personalizada, lista de deseos y
-                biblioteca en Krono.
+                Confirma tu perfil para guardar tu experiencia personalizada, favoritos y biblioteca en Krono.
               </p>
             </div>
-
             <div class="field">
-              <label for="socialNameInput">Nombre visible</label>
+              <label for="socialNameInput">Nombre o gamertag</label>
               <input type="text" id="socialNameInput" class="input" required />
             </div>
-
             <div class="field">
               <label for="socialHandleInput">Cuenta / usuario</label>
               <input type="text" id="socialHandleInput" class="input" required />
             </div>
-
             <p class="field-hint" style="margin: 0">
-              Entorno demostrativo estático (GitHub Pages): la sesión se almacena de forma local y
-              segura en tu navegador, lista para conectarse a credenciales OAuth 2.0 reales.
+              Sitio estático en GitHub Pages: sesión local segura lista para conectar credenciales OAuth 2.0 reales.
             </p>
-
             <div style="display: flex; gap: 10px">
               <button type="button" id="btnBackSocial" class="btn btn-secondary">Volver</button>
-              <button type="submit" class="btn btn-primary" style="flex: 1">
-                Confirmar y continuar
-              </button>
+              <button type="submit" class="btn btn-primary" style="flex: 1">Confirmar y continuar</button>
             </div>
           </form>
         </div>
@@ -762,14 +693,14 @@
     </div>
 
     <!-- ====================================================================
-         MODAL: PERSONALIZACIÓN DE EXPERIENCIA
+         MODAL: PERSONALIZACIÓN DE GUSTOS
          ==================================================================== -->
     <div id="prefsModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="prefsModalTitle" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-header">
           <div>
             <h2 id="prefsModalTitle">Personaliza tu experiencia</h2>
-            <p>Ajusta tus preferencias para calcular la afinidad de cada juego en tiempo real.</p>
+            <p>Ajusta tus gustos para recalcular la afinidad del catálogo en tiempo real.</p>
           </div>
           <button type="button" class="icon-btn" data-close-modal="prefsModal" aria-label="Cerrar">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -780,17 +711,14 @@
           <h3>1. ¿Qué épocas disfrutas más?</h3>
           <div class="pref-options" id="prefEras"></div>
         </div>
-
         <div class="pref-group">
           <h3>2. Tus géneros favoritos</h3>
           <div class="pref-options" id="prefGenres"></div>
         </div>
-
         <div class="pref-group">
           <h3>3. Plataformas donde juegas</h3>
           <div class="pref-options" id="prefPlatforms"></div>
         </div>
-
         <div class="pref-group">
           <h3>4. Prioridad de precio</h3>
           <div class="pref-options" id="prefBudget">
@@ -799,7 +727,7 @@
           </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 24px">
+        <div style="display: flex; gap: 10px; margin-top: 20px">
           <button type="button" id="btnClearPrefs" class="btn btn-secondary">Restablecer</button>
           <button type="button" id="btnSavePrefs" class="btn btn-primary" style="flex: 1">
             Aplicar a mi catálogo
@@ -809,21 +737,39 @@
     </div>
 
     <!-- ====================================================================
-         MODAL: FICHA DE JUEGO Y TRÁILER OFICIAL
+         MODAL: INSPECTOR DE CAJA 3D (FRENTE, CONTRAPORTADA, DISCO Y TRÁILER)
          ==================================================================== -->
     <div id="gameModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-hidden="true">
       <div class="modal-dialog modal-dialog-lg">
         <div class="modal-header">
           <div>
-            <p class="detail-kicker" id="detailKicker">Nuevo lanzamiento · 2025</p>
-            <h2 id="detailTitle" class="detail-title">Título del juego</h2>
+            <p class="detail-kicker" id="detailKicker"></p>
+            <h2 id="detailTitle" class="detail-title"></h2>
           </div>
-          <button type="button" class="icon-btn" data-close-modal="gameModal" aria-label="Cerrar ficha">
+          <button type="button" class="icon-btn" data-close-modal="gameModal" aria-label="Cerrar inspector">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
 
         <div id="detailContent"></div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL: LECTURA DE NOTICIA COMPLETA
+         ==================================================================== -->
+    <div id="newsModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="newsModalTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-lg" style="max-width: 720px">
+        <div class="modal-header">
+          <div>
+            <p class="detail-kicker" id="newsModalMeta"></p>
+            <h2 id="newsModalTitle" class="detail-title" style="font-size: 22px"></h2>
+          </div>
+          <button type="button" class="icon-btn" data-close-modal="newsModal" aria-label="Cerrar noticia">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div id="newsModalContent"></div>
       </div>
     </div>
 
@@ -838,7 +784,6 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
-
         <div class="drawer-body" id="cartBody"></div>
         <div class="drawer-footer" id="cartFooter"></div>
       </div>
@@ -855,13 +800,11 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
-
         <div class="drawer-body" id="accountBody"></div>
         <div class="drawer-footer" id="accountFooter"></div>
       </div>
     </div>
 
-    <!-- Contenedor de notificaciones toast -->
     <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
     <script type="module" src="js/app.js"></script>

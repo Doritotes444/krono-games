@@ -1,20 +1,22 @@
 import {
+  CASE_THEMES,
   DEMO_SOCIAL_ACCOUNTS,
   ERAS,
   GAMES,
   GENRES,
+  NEWS_ITEMS,
   PLATFORMS,
   PROMO_CODES,
   TASTE_PRESETS,
   USD_TO_COP
 } from './data.js';
 
-const STORAGE_KEY = 'krono_store_state_v1';
+const STORAGE_KEY = 'krono_store_state_v2';
 
 const defaultState = {
-  theme: 'light',
+  theme: 'dark',
   currency: 'COP',
-  user: null, // { name, identifier, provider, initials }
+  user: null,
   prefs: {
     presetId: null,
     eras: [],
@@ -23,9 +25,9 @@ const defaultState = {
     budget: 'all'
   },
   wishlist: [],
-  cart: [], // [{ id, qty }]
+  cart: [],
   promoCode: null,
-  library: [], // [{ gameId, title, key, date, edition }]
+  library: [],
   recentlyViewed: []
 };
 
@@ -38,7 +40,12 @@ let filterState = {
   sort: 'recommended'
 };
 
-let authMode = 'login'; // 'login' | 'register'
+let newsCategory = 'all';
+let coverflowIndex = 0;
+let coverflowFlipped = false;
+let coverflowDiscOut = false;
+
+let authMode = 'login';
 let pendingSocialProvider = null;
 let generatedOtp = null;
 let pendingPhoneFormatted = '';
@@ -130,12 +137,8 @@ function showToast(message) {
   }, 3400);
 }
 
-/**
- * Motor de afinidad personalizada: evalúa cada videojuego según gustos,
- * plataformas, historial reciente y lista de deseos del usuario.
- */
 function scoreGameForUser(game) {
-  let points = game.score * 0.45; // Base por calidad curatorial
+  let points = game.score * 0.45;
   const reasons = [];
 
   if (state.prefs.eras.includes(game.era)) {
@@ -160,27 +163,217 @@ function scoreGameForUser(game) {
     reasons.push('Gran precio');
   }
 
-  if (state.wishlist.includes(game.id)) {
-    points += 8;
-  }
-
-  if (state.recentlyViewed.includes(game.id)) {
-    points += 4;
-  }
+  if (state.wishlist.includes(game.id)) points += 8;
+  if (state.recentlyViewed.includes(game.id)) points += 4;
 
   const affinity = Math.min(99, Math.max(72, Math.round(points)));
   const reasonText =
     reasons.length > 0
       ? `Ideal para ti · ${reasons.slice(0, 2).join(' + ')}`
       : game.featured
-        ? 'Destacado por curaduría Krono'
+        ? 'Destacado en Aurora Krono'
         : '';
 
   return { affinity, reasonText, matched: reasons.length > 0 };
 }
 
 /* ==========================================================================
-   Renderizado de UI
+   Componente de Caja Física 3D (Portada real + Contraportada + Disco)
+   ========================================================================== */
+function renderPhysicalCaseHTML(game, { idAttr = '', includeDisc = true, flipped = false, discOut = false, lazy = true } = {}) {
+  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.xbox;
+  const stageClasses = ['case-stage', flipped ? 'flipped' : '', discOut ? 'disc-out' : '']
+    .filter(Boolean)
+    .join(' ');
+  const shots = game.screenshots && game.screenshots.length >= 2 ? game.screenshots : [game.headerImg, game.heroBg];
+
+  return `
+    <div
+      class="${stageClasses}"
+      ${idAttr ? `id="${idAttr}"` : ''}
+      style="--case-header-bg: ${theme.headerBg}; --case-header-text: ${theme.headerText}"
+    >
+      ${
+        includeDisc
+          ? `
+        <div class="optical-disc" aria-hidden="true">
+          <div class="disc-rotor">
+            <img
+              class="disc-art"
+              src="${game.cover}"
+              alt=""
+              ${lazy ? 'loading="lazy"' : ''}
+              onerror="this.onerror=null;this.src='${game.fallbackCover}'"
+            />
+            <div class="disc-sheen"></div>
+            <div class="disc-label-band">${escapeHtml(theme.short)} · ${escapeHtml(game.serial)}</div>
+            <div class="disc-hub"></div>
+          </div>
+        </div>
+      `
+          : ''
+      }
+
+      <div class="case-3d">
+        <!-- CARÁTULA FRONTAL -->
+        <div class="case-face case-front">
+          <div class="case-banner">
+            <span>${escapeHtml(theme.label)}</span>
+            <span>${game.year}</span>
+          </div>
+          <div class="case-artwork">
+            <img
+              src="${game.cover}"
+              alt="Carátula oficial de ${escapeHtml(game.title)}"
+              ${lazy ? 'loading="lazy"' : ''}
+              onerror="this.onerror=null;this.src='${game.fallbackCover}'"
+            />
+          </div>
+          <div class="case-gloss"></div>
+        </div>
+
+        <!-- CONTRAPORTADA FÍSICA REAL -->
+        <div class="case-face case-back">
+          <div class="case-banner">
+            <span>${escapeHtml(theme.short)} · CONTRAPORTADA</span>
+            <span>${escapeHtml(game.serial)}</span>
+          </div>
+
+          <div class="case-back-inner">
+            <p class="back-tagline">${escapeHtml(game.backTagline)}</p>
+
+            <div class="back-shots">
+              <img
+                src="${shots[0]}"
+                alt="Captura de juego 1 de ${escapeHtml(game.title)}"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='${game.fallbackCover}'"
+              />
+              <img
+                src="${shots[1]}"
+                alt="Captura de juego 2 de ${escapeHtml(game.title)}"
+                loading="lazy"
+                onerror="this.onerror=null;this.src='${game.fallbackCover}'"
+              />
+            </div>
+
+            <p class="back-synopsis">${escapeHtml(game.synopsis)}</p>
+
+            <div class="back-specs-grid">
+              <div><span>Jugadores</span>${escapeHtml(game.players)}</div>
+              <div><span>Video</span>${escapeHtml(game.resolution)}</div>
+              <div><span>Almacenamiento</span>${escapeHtml(game.storage)}</div>
+              <div><span>Idiomas</span>${escapeHtml(game.languages)}</div>
+            </div>
+
+            <div class="back-footer">
+              <div class="esrb-box" title="Clasificación ${escapeHtml(game.esrbText)}">
+                <span>ESRB</span>
+                <strong>${escapeHtml(game.esrb)}</strong>
+              </div>
+              <div class="barcode-box">
+                <div class="barcode-stripes" aria-hidden="true"></div>
+                <span class="barcode-num">${escapeHtml(game.barcode)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="case-gloss"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ==========================================================================
+   Vitrina Aurora 3D CoverFlow
+   ========================================================================== */
+function getCoverflowOffset(index, activeIndex, total) {
+  let diff = index - activeIndex;
+  if (diff > total / 2) diff -= total;
+  if (diff < -total / 2) diff += total;
+  if (diff < -2 || diff > 2) return 'hidden';
+  return String(diff);
+}
+
+function renderAuroraCoverflow() {
+  const track = document.getElementById('coverflowTrack');
+  track.innerHTML = GAMES.map((game, index) => {
+    const offset = getCoverflowOffset(index, coverflowIndex, GAMES.length);
+    const isActive = index === coverflowIndex;
+    return `
+      <div class="cf-slot" data-cf-index="${index}" data-offset="${offset}">
+        ${renderPhysicalCaseHTML(game, {
+          idAttr: isActive ? 'auroraActiveCase' : '',
+          includeDisc: true,
+          flipped: isActive && coverflowFlipped,
+          discOut: isActive && coverflowDiscOut,
+          lazy: Math.abs(Number(offset) || 0) > 1
+        })}
+      </div>
+    `;
+  }).join('');
+
+  updateAuroraHud();
+}
+
+function updateAuroraPositions() {
+  const slots = document.querySelectorAll('#coverflowTrack .cf-slot');
+  slots.forEach((slot) => {
+    const idx = Number(slot.dataset.cfIndex);
+    const offset = getCoverflowOffset(idx, coverflowIndex, GAMES.length);
+    slot.dataset.offset = offset;
+    const stage = slot.querySelector('.case-stage');
+    if (idx === coverflowIndex) {
+      stage.id = 'auroraActiveCase';
+      stage.classList.toggle('flipped', coverflowFlipped);
+      stage.classList.toggle('disc-out', coverflowDiscOut);
+    } else {
+      stage.removeAttribute('id');
+      stage.classList.remove('flipped', 'disc-out');
+    }
+  });
+  updateAuroraHud();
+}
+
+function updateAuroraHud() {
+  const game = GAMES[coverflowIndex];
+  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.xbox;
+  const bgImg = document.getElementById('auroraBgImg');
+  bgImg.src = game.heroBg;
+  bgImg.onerror = () => {
+    bgImg.onerror = null;
+    bgImg.src = game.fallbackCover;
+  };
+
+  document.getElementById('hudKicker').innerHTML = `
+    <span>${escapeHtml(theme.short)}</span>
+    <span>·</span>
+    <span>${ERAS[game.era].label} (${game.year})</span>
+    <span>·</span>
+    <span>Nota ${game.score}/100</span>
+    <span>·</span>
+    <span>${coverflowIndex + 1} / ${GAMES.length}</span>
+  `;
+  document.getElementById('hudTitle').textContent = game.title;
+  document.getElementById('hudSub').textContent = `${game.studio} · ${game.genres.join(', ')} · ${formatPrice(game.priceUSD)}${game.discount ? ` (-${game.discount}%)` : ''}`;
+
+  document.getElementById('btnHudFlip').textContent = coverflowFlipped ? '↺ Ver portada' : '↺ Contraportada';
+  document.getElementById('btnHudDisc').textContent = coverflowDiscOut ? '◉ Guardar disco' : '◉ Sacar disco';
+
+  const inCart = state.cart.some((c) => c.id === game.id);
+  const cartBtn = document.getElementById('btnHudCart');
+  cartBtn.textContent = inCart ? 'En carrito ✓' : `Añadir · ${formatPrice(game.priceUSD)}`;
+}
+
+function stepCoverflow(delta) {
+  coverflowIndex = (coverflowIndex + delta + GAMES.length) % GAMES.length;
+  coverflowFlipped = false;
+  coverflowDiscOut = false;
+  updateAuroraPositions();
+}
+
+/* ==========================================================================
+   Renderizado de Header, Personalización, Catálogo, Noticias y Tráilers
    ========================================================================== */
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', state.theme);
@@ -190,11 +383,11 @@ function applyTheme() {
   if (state.theme === 'dark') {
     sun.hidden = false;
     moon.hidden = true;
-    metaTheme?.setAttribute('content', '#111110');
+    metaTheme?.setAttribute('content', '#0A0D12');
   } else {
     sun.hidden = true;
     moon.hidden = false;
-    metaTheme?.setAttribute('content', '#F7F6F2');
+    metaTheme?.setAttribute('content', '#F4F5F7');
   }
 }
 
@@ -260,13 +453,11 @@ function renderPersonalizeRibbon() {
     if (state.prefs.platforms.length) {
       parts.push(`Plataformas: ${state.prefs.platforms.slice(0, 3).join(', ')}`);
     }
-    if (state.prefs.budget === 'ofertas') {
-      parts.push('Prioridad: Ofertas');
-    }
+    if (state.prefs.budget === 'ofertas') parts.push('Prioridad: Ofertas');
     summary.textContent = parts.join(' · ');
   } else {
     summary.textContent =
-      'Elige un perfil rápido o configura tus épocas, géneros y plataformas favoritas para reordenar el catálogo a tu medida.';
+      'Elige un perfil rápido o configura tus épocas, géneros y consolas favoritas para reordenar el catálogo a tu medida.';
   }
 
   chipsContainer.innerHTML = TASTE_PRESETS.map(
@@ -280,25 +471,6 @@ function renderPersonalizeRibbon() {
       </button>
     `
   ).join('');
-}
-
-function updateHeroSpotlight() {
-  const ranked = [...GAMES]
-    .map((g) => ({ game: g, meta: scoreGameForUser(g) }))
-    .sort((a, b) => b.meta.affinity - a.meta.affinity);
-
-  const pick = hasCustomPrefs() ? ranked[0] : { game: GAMES[0], meta: scoreGameForUser(GAMES[0]) };
-  const label = document.getElementById('spotlightLabel');
-  const title = document.getElementById('spotlightTitle');
-  const sub = document.getElementById('spotlightSub');
-  const btn = document.getElementById('btnSpotlightDetail');
-
-  label.textContent = hasCustomPrefs()
-    ? `Recomendado para ti · ${pick.meta.affinity}% afinidad`
-    : `Selección de la semana · ${pick.game.year}`;
-  title.textContent = pick.game.title;
-  sub.textContent = `${pick.game.genres.slice(0, 2).join(' · ')} · Nota ${pick.game.score}/100 · ${formatPrice(pick.game.priceUSD)}`;
-  btn.dataset.gameId = pick.game.id;
 }
 
 function updateTabCounts() {
@@ -390,18 +562,14 @@ function renderCatalog() {
 
   resetBtn.hidden = !hasActiveFilters;
   resultsCount.textContent =
-    items.length === 1
-      ? 'Mostrando 1 videojuego'
-      : `Mostrando ${items.length} videojuegos`;
+    items.length === 1 ? 'Mostrando 1 videojuego' : `Mostrando ${items.length} videojuegos`;
 
   if (items.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
         <h3>No encontramos juegos con esos filtros</h3>
-        <p>Prueba cambiando la plataforma, el género o limpiando tu búsqueda actual.</p>
-        <button type="button" class="btn btn-primary btn-sm" id="btnEmptyReset">
-          Ver todo el catálogo
-        </button>
+        <p style="color: var(--ink-secondary); margin: 0 0 18px">Prueba cambiando la plataforma, el género o limpiando tu búsqueda.</p>
+        <button type="button" class="btn btn-primary btn-sm" id="btnEmptyReset">Ver todo el catálogo</button>
       </div>
     `;
     document.getElementById('btnEmptyReset')?.addEventListener('click', resetFilters);
@@ -414,20 +582,15 @@ function renderCatalog() {
     .map(({ game, affinity, reasonText }) => {
       const isWishlisted = state.wishlist.includes(game.id);
       const inCart = state.cart.some((c) => c.id === game.id);
-      const eraLabel = ERAS[game.era].shortLabel;
 
       return `
         <article class="game-card" data-game-card="${game.id}">
-          <div class="game-cover-wrap" data-open-detail="${game.id}">
-            <img
-              src="${game.cover}"
-              alt="Portada ilustrada de ${escapeHtml(game.title)}"
-              width="720"
-              height="960"
-              loading="lazy"
-            />
-            <div class="cover-top-bar">
-              <span class="era-tag">${game.year} · ${eraLabel}</span>
+          <div class="card-case-box">
+            <div class="cover-top-actions">
+              <div style="display: flex; gap: 5px; align-items: center">
+                ${game.discount > 0 ? `<span class="discount-tag">-${game.discount}%</span>` : ''}
+                ${showAffinity ? `<span class="affinity-tag">${affinity}%</span>` : ''}
+              </div>
               <button
                 type="button"
                 class="wishlist-btn ${isWishlisted ? 'saved' : ''}"
@@ -435,21 +598,30 @@ function renderCatalog() {
                 aria-label="${isWishlisted ? 'Quitar de favoritos' : 'Guardar en favoritos'}"
                 aria-pressed="${isWishlisted}"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="${isWishlisted ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="${isWishlisted ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                 </svg>
               </button>
             </div>
-            <div class="cover-bottom-bar">
-              ${game.discount > 0 ? `<span class="discount-tag">-${game.discount}%</span>` : ''}
-              ${showAffinity ? `<span class="affinity-tag">${affinity}% afín</span>` : ''}
+
+            <div data-open-detail="${game.id}" style="cursor: pointer">
+              ${renderPhysicalCaseHTML(game, { includeDisc: false, flipped: false, lazy: true })}
+            </div>
+
+            <div class="card-case-controls">
+              <button type="button" class="mini-pill-btn" data-flip-card="${game.id}" title="Voltear para ver la contraportada">
+                ↺ Reverso
+              </button>
+              <button type="button" class="mini-pill-btn" data-open-disc="${game.id}" title="Ver disco físico y caja 3D">
+                ◉ Disco 3D
+              </button>
             </div>
           </div>
 
           <div class="game-body">
             <div class="game-meta-top">
-              <span>${escapeHtml(game.studio)}</span>
-              <span class="game-score" title="Calificación curatorial">${game.score}</span>
+              <span>${escapeHtml(game.studio)} · ${game.year}</span>
+              <span class="game-score" title="Calificación">${game.score}</span>
             </div>
 
             <h3 class="game-title" data-open-detail="${game.id}">${escapeHtml(game.title)}</h3>
@@ -471,10 +643,10 @@ function renderCatalog() {
                   type="button"
                   class="btn btn-secondary btn-sm"
                   data-open-detail="${game.id}"
-                  aria-label="Ver detalles de ${escapeHtml(game.title)}"
+                  aria-label="Inspeccionar caja de ${escapeHtml(game.title)}"
                 >
-                  <span class="btn-detail-label">Ficha</span>
-                  <span aria-hidden="true">+</span>
+                  <span class="btn-detail-label">Caja</span>
+                  <span aria-hidden="true">3D</span>
                 </button>
                 <button
                   type="button"
@@ -492,8 +664,83 @@ function renderCatalog() {
     .join('');
 }
 
+function renderNews() {
+  const grid = document.getElementById('newsGrid');
+  const filtered =
+    newsCategory === 'all'
+      ? NEWS_ITEMS
+      : NEWS_ITEMS.filter((item) => item.category === newsCategory);
+
+  grid.innerHTML = filtered
+    .map(
+      (item) => `
+      <article class="news-card" data-open-news="${item.id}" tabindex="0" role="button">
+        <div class="news-thumb">
+          <img src="${item.image}" alt="${escapeHtml(item.title)}" loading="lazy" />
+          <span class="news-cat">${escapeHtml(item.category)}</span>
+        </div>
+        <div class="news-body">
+          <div class="news-meta">${escapeHtml(item.date)} · Lectura ${escapeHtml(item.readTime)}</div>
+          <h3 class="news-title">${escapeHtml(item.title)}</h3>
+          <p class="news-excerpt">${escapeHtml(item.excerpt)}</p>
+          <span class="news-read-more">Leer noticia completa →</span>
+        </div>
+      </article>
+    `
+    )
+    .join('');
+}
+
+function openNewsModal(newsId) {
+  const item = NEWS_ITEMS.find((n) => n.id === newsId);
+  if (!item) return;
+
+  const related = GAMES.find((g) => g.id === item.relatedGameId);
+  document.getElementById('newsModalMeta').textContent = `${item.category} · ${item.date} · Lectura ${item.readTime}`;
+  document.getElementById('newsModalTitle').textContent = item.title;
+
+  document.getElementById('newsModalContent').innerHTML = `
+    <img
+      src="${item.image}"
+      alt="${escapeHtml(item.title)}"
+      style="width: 100%; border-radius: var(--radius-md); margin-bottom: 18px; border: 1px solid var(--border)"
+    />
+    ${item.body
+      .map(
+        (p) =>
+          `<p style="margin: 0 0 14px; font-size: 14.5px; line-height: 1.65; color: var(--ink-secondary)">${escapeHtml(p)}</p>`
+      )
+      .join('')}
+    ${
+      related
+        ? `
+      <div class="digital-key-card" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 18px">
+        <div>
+          <div style="font-size: 11px; font-family: var(--font-mono); color: var(--accent); text-transform: uppercase">Juego relacionado</div>
+          <div style="font-weight: 700; font-size: 15px">${escapeHtml(related.title)} (${related.year})</div>
+          <div style="font-size: 12.5px; color: var(--ink-secondary)">${formatPrice(related.priceUSD)} · Nota ${related.score}/100</div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="btnNewsOpenGame">
+          Ver caja 3D y disco →
+        </button>
+      </div>
+    `
+        : ''
+    }
+  `;
+
+  if (related) {
+    document.getElementById('btnNewsOpenGame').addEventListener('click', () => {
+      closeModal('newsModal');
+      openGameDetail(related.id, { mode: 'front' });
+    });
+  }
+
+  openModal('newsModal');
+}
+
 function renderTrailers() {
-  const featuredIds = ['expedition-33', 'elden-ring', 'shadow-colossus'];
+  const featuredIds = ['expedition-33', 'elden-ring', 'halo-mcc'];
   const container = document.getElementById('trailersGrid');
 
   container.innerHTML = featuredIds
@@ -503,12 +750,12 @@ function renderTrailers() {
       return `
         <article class="trailer-card">
           <div class="trailer-player" data-trailer-embed="${game.youtubeId}" data-trailer-title="${escapeHtml(game.title)}">
-            <img src="${game.cover}" alt="Vista previa del tráiler de ${escapeHtml(game.title)}" loading="lazy" />
+            <img src="${game.headerImg}" alt="Vista previa del tráiler de ${escapeHtml(game.title)}" loading="lazy" onerror="this.onerror=null;this.src='${game.fallbackCover}'" />
             <button type="button" class="play-overlay" aria-label="Reproducir tráiler oficial de ${escapeHtml(game.title)}">
               <span class="play-circle">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
               </span>
-              <span style="font-size: 12.5px; font-weight: 600">Reproducir tráiler oficial</span>
+              <span style="font-size: 12.5px; font-weight: 700">Reproducir tráiler oficial</span>
             </button>
           </div>
           <div class="trailer-meta">
@@ -522,7 +769,7 @@ function renderTrailers() {
 }
 
 /* ==========================================================================
-   Modales y Drawers (Apertura, Cierre, Accesibilidad)
+   Modales y Drawers
    ========================================================================== */
 function openModal(id) {
   const el = document.getElementById(id);
@@ -538,7 +785,6 @@ function closeModal(id) {
   el.classList.remove('open');
   el.setAttribute('aria-hidden', 'true');
   if (id === 'gameModal') {
-    // Limpiar iframe para detener audio/video inmediatamente
     document.getElementById('detailContent').innerHTML = '';
   }
   restoreBodyScroll();
@@ -582,9 +828,9 @@ function closeMobileMenu() {
 }
 
 /* ==========================================================================
-   Ficha de detalle del videojuego + Tráiler
+   Inspector Completo de Caja Física 3D (Portada, Contraportada, Disco, Tráiler)
    ========================================================================== */
-function openGameDetail(gameId, autoPlayTrailer = false) {
+function openGameDetail(gameId, { mode = 'front' } = {}) {
   const game = GAMES.find((g) => g.id === gameId);
   if (!game) return;
 
@@ -594,66 +840,87 @@ function openGameDetail(gameId, autoPlayTrailer = false) {
     saveState();
   }
 
+  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.xbox;
   const { affinity, reasonText } = scoreGameForUser(game);
   const isWishlisted = state.wishlist.includes(game.id);
   const inCart = state.cart.some((c) => c.id === game.id);
 
-  document.getElementById('detailKicker').textContent = `${ERAS[game.era].label} · ${game.year} · ${game.studio}`;
+  document.getElementById('detailKicker').textContent = `${theme.label} · ${ERAS[game.era].label} (${game.year}) · ${game.studio}`;
   document.getElementById('detailTitle').textContent = game.title;
 
   const content = document.getElementById('detailContent');
   content.innerHTML = `
-    <div id="detailTrailerSlot" ${autoPlayTrailer ? '' : 'hidden'}>
-      ${
-        autoPlayTrailer
-          ? `<div class="detail-video-box"><iframe src="https://www.youtube-nocookie.com/embed/${game.youtubeId}?autoplay=1&rel=0" title="Tráiler oficial de ${escapeHtml(game.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
-          : ''
-      }
-    </div>
+    <div id="detailTrailerSlot" hidden></div>
 
     <div class="detail-grid">
-      <div class="detail-media">
-        <img src="${game.cover}" alt="Portada de ${escapeHtml(game.title)}" />
+      <div class="inspector-stage">
+        <div class="inspector-case-wrap">
+          ${renderPhysicalCaseHTML(game, {
+            idAttr: 'inspectorCaseStage',
+            includeDisc: true,
+            flipped: mode === 'back',
+            discOut: mode === 'disc',
+            lazy: false
+          })}
+        </div>
+
+        <div class="inspector-toolbar" role="group" aria-label="Vistas de la caja física 3D">
+          <button type="button" class="btn btn-sm ${mode === 'front' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="front">
+            Portada
+          </button>
+          <button type="button" class="btn btn-sm ${mode === 'back' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="back">
+            ↺ Contraportada
+          </button>
+          <button type="button" class="btn btn-sm ${mode === 'disc' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="disc">
+            ◉ Disco físico
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary" id="btnToggleDiscSpin" ${mode === 'disc' ? '' : 'hidden'}>
+            ⏸ Pausar giro
+          </button>
+        </div>
+
+        <p style="margin: 0; font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted); text-align: center">
+          ${escapeHtml(theme.discFormat)} · ${escapeHtml(game.serial)}
+        </p>
       </div>
 
       <div>
         <div class="detail-specs-row">
-          <span class="meta-tag">Nota ${game.score}/100</span>
+          <span class="meta-tag" style="color: var(--accent)">Nota ${game.score}/100</span>
+          <span class="meta-tag">${escapeHtml(game.esrb)} · ${escapeHtml(game.esrbText)}</span>
           <span class="meta-tag">Duración: ${game.playtime}</span>
-          <span class="meta-tag">${escapeHtml(game.edition)}</span>
+          <span class="meta-tag">${escapeHtml(game.players)}</span>
           ${hasCustomPrefs() ? `<span class="meta-tag" style="color: var(--accent)">${affinity}% afinidad</span>` : ''}
         </div>
 
-        <p style="margin: 0 0 12px; color: var(--ink-secondary)">${escapeHtml(game.synopsis)}</p>
+        <p style="margin: 0 0 10px; color: var(--ink-secondary)">${escapeHtml(game.synopsis)}</p>
 
         <div class="editorial-note">
           <strong>Por qué vale la pena</strong>
           ${escapeHtml(game.whyWorthIt)}
         </div>
 
-        ${reasonText && hasCustomPrefs() ? `<p class="game-reason" style="margin-bottom: 12px">${escapeHtml(reasonText)}</p>` : ''}
+        ${reasonText && hasCustomPrefs() ? `<p class="game-reason" style="margin-bottom: 10px">${escapeHtml(reasonText)}</p>` : ''}
 
-        <p style="margin: 0 0 6px; font-size: 13px; color: var(--ink-secondary)">
-          <strong>Plataformas:</strong> ${game.platforms.join(', ')}
+        <p style="margin: 0 0 5px; font-size: 13px; color: var(--ink-secondary)">
+          <strong>Edición:</strong> ${escapeHtml(game.edition)} · <strong>Video:</strong> ${escapeHtml(game.resolution)}
         </p>
         <p style="margin: 0 0 14px; font-size: 13px; color: var(--ink-secondary)">
-          <strong>Requisitos / compatibilidad:</strong> ${escapeHtml(game.specs)}
+          <strong>Compatibilidad:</strong> ${escapeHtml(game.specs)}
         </p>
 
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px">
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px">
           ${game.tags.map((t) => `<span class="meta-tag">${escapeHtml(t)}</span>`).join('')}
         </div>
 
-        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding-top: 16px; border-top: 1px solid var(--border)">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding-top: 14px; border-top: 1px solid var(--border)">
           <div class="price-block">
             <span class="price-current" style="font-size: 20px">${formatPrice(game.priceUSD)}</span>
             ${game.originalPriceUSD ? `<span class="price-old">${formatPrice(game.originalPriceUSD)} (-${game.discount}%)</span>` : ''}
           </div>
 
           <div style="display: flex; flex-wrap: wrap; gap: 8px">
-            <button type="button" class="btn btn-secondary btn-sm" id="btnDetailTrailer">
-              ${autoPlayTrailer ? 'Ocultar tráiler' : '▶ Ver tráiler'}
-            </button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnDetailTrailer">▶ Tráiler</button>
             <button type="button" class="btn btn-secondary btn-sm" id="btnDetailWishlist">
               ${isWishlisted ? '♥ Guardado' : '♡ Favorito'}
             </button>
@@ -666,10 +933,32 @@ function openGameDetail(gameId, autoPlayTrailer = false) {
     </div>
   `;
 
-  let trailerVisible = autoPlayTrailer;
-  document.getElementById('btnDetailTrailer').addEventListener('click', () => {
+  const stage = document.getElementById('inspectorCaseStage');
+  const spinBtn = document.getElementById('btnToggleDiscSpin');
+  let discPaused = false;
+
+  content.querySelectorAll('[data-insp-mode]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const m = btn.dataset.inspMode;
+      stage.classList.toggle('flipped', m === 'back');
+      stage.classList.toggle('disc-out', m === 'disc');
+      spinBtn.hidden = m !== 'disc';
+      content.querySelectorAll('[data-insp-mode]').forEach((b) => {
+        b.classList.toggle('btn-primary', b.dataset.inspMode === m);
+        b.classList.toggle('btn-secondary', b.dataset.inspMode !== m);
+      });
+    });
+  });
+
+  spinBtn.addEventListener('click', () => {
+    discPaused = !discPaused;
+    stage.querySelector('.disc-rotor')?.classList.toggle('paused', discPaused);
+    spinBtn.textContent = discPaused ? '▶ Girar disco' : '⏸ Pausar giro';
+  });
+
+  let trailerVisible = false;
+  document.getElementById('btnDetailTrailer').addEventListener('click', (e) => {
     const slot = document.getElementById('detailTrailerSlot');
-    const btn = document.getElementById('btnDetailTrailer');
     trailerVisible = !trailerVisible;
     if (trailerVisible) {
       slot.hidden = false;
@@ -678,18 +967,17 @@ function openGameDetail(gameId, autoPlayTrailer = false) {
           <iframe src="https://www.youtube-nocookie.com/embed/${game.youtubeId}?autoplay=1&rel=0" title="Tráiler oficial de ${escapeHtml(game.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
       `;
-      btn.textContent = 'Ocultar tráiler';
+      e.currentTarget.textContent = 'Ocultar tráiler';
     } else {
       slot.hidden = true;
       slot.innerHTML = '';
-      btn.textContent = '▶ Ver tráiler';
+      e.currentTarget.textContent = '▶ Tráiler';
     }
   });
 
   document.getElementById('btnDetailWishlist').addEventListener('click', (e) => {
     toggleWishlist(game.id);
-    const saved = state.wishlist.includes(game.id);
-    e.currentTarget.textContent = saved ? '♥ Guardado' : '♡ Favorito';
+    e.currentTarget.textContent = state.wishlist.includes(game.id) ? '♥ Guardado' : '♡ Favorito';
   });
 
   document.getElementById('btnDetailAddCart').addEventListener('click', () => {
@@ -702,7 +990,7 @@ function openGameDetail(gameId, autoPlayTrailer = false) {
 }
 
 /* ==========================================================================
-   Personalización de gustos (Modal & Presets)
+   Personalización, Auth, Carrito y Cuenta
    ========================================================================== */
 function openPrefsModal() {
   draftPrefs = clonePrefs(state.prefs);
@@ -711,8 +999,7 @@ function openPrefsModal() {
 }
 
 function renderPrefsModalOptions() {
-  const erasEl = document.getElementById('prefEras');
-  erasEl.innerHTML = Object.values(ERAS)
+  document.getElementById('prefEras').innerHTML = Object.values(ERAS)
     .map(
       (era) => `
       <button type="button" class="chip ${draftPrefs.eras.includes(era.id) ? 'active' : ''}" data-pref-era="${era.id}">
@@ -722,8 +1009,7 @@ function renderPrefsModalOptions() {
     )
     .join('');
 
-  const genresEl = document.getElementById('prefGenres');
-  genresEl.innerHTML = GENRES.map(
+  document.getElementById('prefGenres').innerHTML = GENRES.map(
     (g) => `
       <button type="button" class="chip ${draftPrefs.genres.includes(g) ? 'active' : ''}" data-pref-genre="${g}">
         ${g}
@@ -731,8 +1017,7 @@ function renderPrefsModalOptions() {
     `
   ).join('');
 
-  const platEl = document.getElementById('prefPlatforms');
-  platEl.innerHTML = PLATFORMS.map(
+  document.getElementById('prefPlatforms').innerHTML = PLATFORMS.map(
     (p) => `
       <button type="button" class="chip ${draftPrefs.platforms.includes(p) ? 'active' : ''}" data-pref-platform="${p}">
         ${p}
@@ -772,13 +1057,9 @@ function applyTastePreset(presetId) {
 
   saveState();
   renderPersonalizeRibbon();
-  updateHeroSpotlight();
   renderCatalog();
 }
 
-/* ==========================================================================
-   Autenticación: Google, Facebook, Discord, Correo y Teléfono (SMS)
-   ========================================================================== */
 function openAuthModal() {
   document.getElementById('authMainView').hidden = false;
   document.getElementById('authSocialView').hidden = true;
@@ -815,7 +1096,6 @@ function startSocialAuth(providerKey) {
   const cfg = DEMO_SOCIAL_ACCOUNTS[providerKey];
   if (!cfg) return;
   pendingSocialProvider = cfg;
-
   document.getElementById('authMainView').hidden = true;
   document.getElementById('authSocialView').hidden = false;
   document.getElementById('socialProviderPill').textContent = cfg.provider;
@@ -847,13 +1127,9 @@ function toggleEmailAuthMode() {
     : 'Crear cuenta';
 }
 
-/* ==========================================================================
-   Carrito, Lista de Deseos y Checkout Digital
-   ========================================================================== */
 function toggleWishlist(gameId) {
   const game = GAMES.find((g) => g.id === gameId);
   if (!game) return;
-
   const idx = state.wishlist.indexOf(gameId);
   if (idx >= 0) {
     state.wishlist.splice(idx, 1);
@@ -862,7 +1138,6 @@ function toggleWishlist(gameId) {
     state.wishlist.push(gameId);
     showToast(`${game.title} guardado en favoritos.`);
   }
-
   saveState();
   updateHeaderUI();
   renderCatalog();
@@ -871,16 +1146,12 @@ function toggleWishlist(gameId) {
 function addToCart(gameId) {
   const game = GAMES.find((g) => g.id === gameId);
   if (!game) return;
-
   const existing = state.cart.find((c) => c.id === gameId);
-  if (existing) {
-    existing.qty += 1;
-  } else {
-    state.cart.push({ id: gameId, qty: 1 });
-  }
-
+  if (existing) existing.qty += 1;
+  else state.cart.push({ id: gameId, qty: 1 });
   saveState();
   updateHeaderUI();
+  updateAuroraHud();
   renderCatalog();
   showToast(`${game.title} añadido al carrito.`);
 }
@@ -889,11 +1160,10 @@ function updateCartQty(gameId, delta) {
   const item = state.cart.find((c) => c.id === gameId);
   if (!item) return;
   item.qty += delta;
-  if (item.qty <= 0) {
-    state.cart = state.cart.filter((c) => c.id !== gameId);
-  }
+  if (item.qty <= 0) state.cart = state.cart.filter((c) => c.id !== gameId);
   saveState();
   updateHeaderUI();
+  updateAuroraHud();
   renderCatalog();
   renderCartDrawer();
 }
@@ -911,12 +1181,10 @@ function renderCartDrawer() {
     body.innerHTML = `
       <div style="text-align: center; padding: 48px 12px">
         <p style="font-size: 16px; font-weight: 700; margin: 0 0 8px">Tu carrito está vacío</p>
-        <p style="font-size: 13.5px; color: var(--ink-secondary); margin: 0 0 20px">
-          Explora lanzamientos, modernos o clásicos y añade tus favoritos para obtener claves digitales al instante.
+        <p style="font-size: 13.5px; color: var(--ink-secondary); margin: 0 0 18px">
+          Añade cualquier videojuego desde la vitrina Aurora 3D o el catálogo para generar tus claves al instante.
         </p>
-        <button type="button" class="btn btn-primary btn-sm" id="btnCartExplore">
-          Ir al catálogo
-        </button>
+        <button type="button" class="btn btn-primary btn-sm" id="btnCartExplore">Ir al catálogo</button>
       </div>
     `;
     footer.innerHTML = '';
@@ -935,7 +1203,7 @@ function renderCartDrawer() {
       subtotalUSD += game.priceUSD * entry.qty;
       return `
         <div class="cart-item">
-          <img src="${game.cover}" alt="${escapeHtml(game.title)}" />
+          <img src="${game.cover}" alt="${escapeHtml(game.title)}" onerror="this.onerror=null;this.src='${game.fallbackCover}'" />
           <div>
             <h4>${escapeHtml(game.title)}</h4>
             <div class="cart-item-meta">${escapeHtml(game.edition)}</div>
@@ -947,9 +1215,7 @@ function renderCartDrawer() {
           </div>
           <div style="text-align: right">
             <div class="price-current">${formatPrice(game.priceUSD * entry.qty)}</div>
-            <button type="button" class="link-btn" style="font-size: 12px; margin-top: 6px" data-cart-qty="${game.id}" data-delta="-999">
-              Quitar
-            </button>
+            <button type="button" class="link-btn" style="font-size: 12px; margin-top: 5px" data-cart-qty="${game.id}" data-delta="-999">Quitar</button>
           </div>
         </div>
       `;
@@ -962,39 +1228,17 @@ function renderCartDrawer() {
 
   footer.innerHTML = `
     <div class="promo-row">
-      <input
-        type="text"
-        id="promoInput"
-        class="input"
-        placeholder="Cupón (ej. SENA2026 o KRONO15)"
-        value="${state.promoCode || ''}"
-        style="height: 38px; text-transform: uppercase"
-      />
-      <button type="button" id="btnApplyPromo" class="btn btn-secondary btn-sm" style="height: 38px">
-        Aplicar
-      </button>
+      <input type="text" id="promoInput" class="input" placeholder="Cupón (SENA2026 o KRONO15)" value="${state.promoCode || ''}" style="height: 36px; text-transform: uppercase" />
+      <button type="button" id="btnApplyPromo" class="btn btn-secondary btn-sm" style="height: 36px">Aplicar</button>
     </div>
-
-    <div class="summary-row">
-      <span>Subtotal</span>
-      <span>${formatPrice(subtotalUSD)}</span>
-    </div>
+    <div class="summary-row"><span>Subtotal</span><span>${formatPrice(subtotalUSD)}</span></div>
     ${
       promo
-        ? `<div class="summary-row" style="color: var(--success)">
-            <span>Cupón ${state.promoCode} (-${promo.percent}%)</span>
-            <span>−${formatPrice(discountUSD)}</span>
-          </div>`
+        ? `<div class="summary-row" style="color: var(--success)"><span>Cupón ${state.promoCode} (-${promo.percent}%)</span><span>−${formatPrice(discountUSD)}</span></div>`
         : ''
     }
-    <div class="summary-row total">
-      <span>Total a pagar</span>
-      <span>${formatPrice(totalUSD)}</span>
-    </div>
-
-    <button type="button" id="btnCheckout" class="btn btn-primary btn-full" style="margin-top: 12px">
-      Finalizar compra digital
-    </button>
+    <div class="summary-row total"><span>Total a pagar</span><span>${formatPrice(totalUSD)}</span></div>
+    <button type="button" id="btnCheckout" class="btn btn-primary btn-full" style="margin-top: 12px">Finalizar compra digital</button>
   `;
 
   document.getElementById('btnApplyPromo').addEventListener('click', () => {
@@ -1020,11 +1264,7 @@ function renderCartDrawer() {
 
 function completePurchase() {
   const newKeys = [];
-  const today = new Date().toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+  const today = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 
   state.cart.forEach((entry) => {
     const game = GAMES.find((g) => g.id === entry.id);
@@ -1046,25 +1286,20 @@ function completePurchase() {
   state.promoCode = null;
   saveState();
   updateHeaderUI();
+  updateAuroraHud();
   renderCatalog();
 
-  const body = document.getElementById('cartBody');
-  const footer = document.getElementById('cartFooter');
-
-  body.innerHTML = `
+  document.getElementById('cartBody').innerHTML = `
     <div style="padding: 8px 0">
-      <span class="provider-pill" style="color: var(--success); border-color: var(--success); margin-bottom: 12px">
-        ✓ Compra simulada confirmada
-      </span>
+      <span class="provider-pill" style="color: var(--success); border-color: var(--success); margin-bottom: 12px">✓ Compra simulada confirmada</span>
       <h3 style="margin: 0 0 6px; font-size: 18px">Tus claves digitales están listas</h3>
-      <p style="margin: 0 0 18px; font-size: 13.5px; color: var(--ink-secondary)">
+      <p style="margin: 0 0 16px; font-size: 13.5px; color: var(--ink-secondary)">
         ${
           state.user
-            ? `Guardadas en la biblioteca de <strong>${escapeHtml(state.user.name)}</strong> (${escapeHtml(state.user.identifier)}).`
-            : 'Se han guardado en tu biblioteca local. Inicia sesión cuando quieras para mantener tu perfil.'
+            ? `Guardadas en la biblioteca de <strong>${escapeHtml(state.user.name)}</strong>.`
+            : 'Guardadas en tu biblioteca local.'
         }
       </p>
-
       ${newKeys
         .map(
           (item) => `
@@ -1082,29 +1317,22 @@ function completePurchase() {
     </div>
   `;
 
-  footer.innerHTML = `
-    <button type="button" class="btn btn-primary btn-full" data-close-drawer="cartDrawer">
-      Seguir explorando
-    </button>
+  document.getElementById('cartFooter').innerHTML = `
+    <button type="button" class="btn btn-primary btn-full" data-close-drawer="cartDrawer">Seguir explorando</button>
   `;
-
-  showToast('¡Compra completada! Claves digitales generadas al instante.');
+  showToast('¡Compra completada! Claves digitales generadas.');
 }
 
-/* ==========================================================================
-   Drawer de Cuenta / Lista de Deseos / Biblioteca
-   ========================================================================== */
 function openAccountDrawer(focusSection = 'profile') {
   const body = document.getElementById('accountBody');
   const footer = document.getElementById('accountFooter');
-  const titleEl = document.getElementById('accountDrawerTitle');
-
-  titleEl.textContent = focusSection === 'wishlist' ? 'Lista de deseos' : 'Tu espacio en Krono';
+  document.getElementById('accountDrawerTitle').textContent =
+    focusSection === 'wishlist' ? 'Lista de deseos' : 'Tu espacio en Krono';
 
   const userCard = state.user
     ? `
-      <div class="digital-key-card" style="display: flex; align-items: center; gap: 12px; margin-bottom: 18px">
-        <span class="avatar-circle" style="width: 40px; height: 40px; font-size: 14px">${escapeHtml(state.user.initials)}</span>
+      <div class="digital-key-card" style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px">
+        <span class="avatar-circle" style="width: 38px; height: 38px; font-size: 14px">${escapeHtml(state.user.initials)}</span>
         <div style="min-width: 0">
           <div style="font-weight: 700; font-size: 15px">${escapeHtml(state.user.name)}</div>
           <div style="font-size: 12.5px; color: var(--ink-secondary); overflow: hidden; text-overflow: ellipsis">${escapeHtml(state.user.identifier)}</div>
@@ -1113,83 +1341,65 @@ function openAccountDrawer(focusSection = 'profile') {
       </div>
     `
     : `
-      <div class="digital-key-card" style="margin-bottom: 18px">
+      <div class="digital-key-card" style="margin-bottom: 16px">
         <div style="font-weight: 700; margin-bottom: 4px">Navegando como invitado</div>
         <p style="margin: 0 0 12px; font-size: 13px; color: var(--ink-secondary)">
-          Inicia sesión con Google, Facebook, Discord, correo o teléfono para identificar tu perfil.
+          Inicia sesión con Google, Facebook, Discord, correo o teléfono para sincronizar tu colección.
         </p>
-        <button type="button" id="btnAccountSignIn" class="btn btn-primary btn-sm btn-full">
-          Iniciar sesión o registrarme
-        </button>
+        <button type="button" id="btnAccountSignIn" class="btn btn-primary btn-sm btn-full">Iniciar sesión o registrarme</button>
       </div>
     `;
 
-  const wishlistGames = state.wishlist
-    .map((id) => GAMES.find((g) => g.id === id))
-    .filter(Boolean);
-
-  const wishlistHtml =
-    wishlistGames.length > 0
-      ? wishlistGames
-          .map(
-            (g) => `
-          <div class="cart-item">
-            <img src="${g.cover}" alt="${escapeHtml(g.title)}" />
-            <div>
-              <h4>${escapeHtml(g.title)}</h4>
-              <div class="cart-item-meta">${g.year} · ${formatPrice(g.priceUSD)}</div>
-              <div style="display: flex; gap: 10px">
-                <button type="button" class="link-btn" data-add-cart="${g.id}">Al carrito</button>
-                <button type="button" class="link-btn" style="color: var(--ink-muted)" data-remove-wish="${g.id}">Quitar</button>
-              </div>
-            </div>
+  const wishlistGames = state.wishlist.map((id) => GAMES.find((g) => g.id === id)).filter(Boolean);
+  const wishlistHtml = wishlistGames.length
+    ? wishlistGames
+        .map(
+          (g) => `
+      <div class="cart-item">
+        <img src="${g.cover}" alt="${escapeHtml(g.title)}" onerror="this.onerror=null;this.src='${g.fallbackCover}'" />
+        <div>
+          <h4>${escapeHtml(g.title)}</h4>
+          <div class="cart-item-meta">${g.year} · ${formatPrice(g.priceUSD)}</div>
+          <div style="display: flex; gap: 10px">
+            <button type="button" class="link-btn" data-add-cart="${g.id}">Al carrito</button>
+            <button type="button" class="link-btn" style="color: var(--ink-muted)" data-remove-wish="${g.id}">Quitar</button>
           </div>
-        `
-          )
-          .join('')
-      : `<p style="font-size: 13px; color: var(--ink-muted)">Aún no has guardado juegos en favoritos.</p>`;
+        </div>
+      </div>
+    `
+        )
+        .join('')
+    : `<p style="font-size: 13px; color: var(--ink-muted)">Aún no has guardado juegos en favoritos.</p>`;
 
-  const libraryHtml =
-    state.library.length > 0
-      ? state.library
-          .map(
-            (item) => `
-          <div class="digital-key-card">
-            <div style="font-weight: 700; font-size: 13.5px">${escapeHtml(item.title)}</div>
-            <div style="font-size: 11.5px; color: var(--ink-muted)">${item.date} · ${escapeHtml(item.edition)}</div>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap">
-              <code class="key-code">${item.key}</code>
-              <button type="button" class="link-btn" data-copy-key="${item.key}">Copiar</button>
-            </div>
-          </div>
-        `
-          )
-          .join('')
-      : `<p style="font-size: 13px; color: var(--ink-muted)">Tus claves digitales compradas aparecerán aquí.</p>`;
+  const libraryHtml = state.library.length
+    ? state.library
+        .map(
+          (item) => `
+      <div class="digital-key-card">
+        <div style="font-weight: 700; font-size: 13.5px">${escapeHtml(item.title)}</div>
+        <div style="font-size: 11.5px; color: var(--ink-muted)">${item.date} · ${escapeHtml(item.edition)}</div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap">
+          <code class="key-code">${item.key}</code>
+          <button type="button" class="link-btn" data-copy-key="${item.key}">Copiar</button>
+        </div>
+      </div>
+    `
+        )
+        .join('')
+    : `<p style="font-size: 13px; color: var(--ink-muted)">Tus claves digitales compradas aparecerán aquí.</p>`;
 
   body.innerHTML = `
     ${userCard}
-    <div style="display: flex; align-items: center; justify-content: space-between; margin: 18px 0 8px">
-      <h3 style="margin: 0; font-size: 15px">Lista de deseos (${wishlistGames.length})</h3>
-    </div>
+    <h3 style="margin: 16px 0 8px; font-size: 15px">Lista de deseos (${wishlistGames.length})</h3>
     ${wishlistHtml}
-
-    <div style="display: flex; align-items: center; justify-content: space-between; margin: 24px 0 10px">
-      <h3 style="margin: 0; font-size: 15px">Mi biblioteca digital (${state.library.length})</h3>
-    </div>
+    <h3 style="margin: 22px 0 10px; font-size: 15px">Mi biblioteca digital (${state.library.length})</h3>
     ${libraryHtml}
   `;
 
   footer.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 8px">
-      <button type="button" id="btnDrawerEditPrefs" class="btn btn-secondary btn-full btn-sm">
-        Editar mis gustos y recomendaciones
-      </button>
-      ${
-        state.user
-          ? `<button type="button" id="btnSignOut" class="btn btn-ghost btn-full btn-sm" style="color: var(--accent)">Cerrar sesión</button>`
-          : ''
-      }
+      <button type="button" id="btnDrawerEditPrefs" class="btn btn-secondary btn-full btn-sm">Editar mis gustos</button>
+      ${state.user ? `<button type="button" id="btnSignOut" class="btn btn-ghost btn-full btn-sm" style="color: var(--sale)">Cerrar sesión</button>` : ''}
     </div>
   `;
 
@@ -1197,20 +1407,14 @@ function openAccountDrawer(focusSection = 'profile') {
     closeDrawer('accountDrawer');
     openAuthModal();
   });
-
   document.getElementById('btnDrawerEditPrefs')?.addEventListener('click', () => {
     closeDrawer('accountDrawer');
     openPrefsModal();
   });
-
   document.getElementById('btnSignOut')?.addEventListener('click', signOutUser);
-
   openDrawer('accountDrawer');
 }
 
-/* ==========================================================================
-   Filtros y navegación de secciones
-   ========================================================================== */
 function setActiveSection(section) {
   filterState.section = section;
   document.querySelectorAll('.tab-btn[data-section]').forEach((btn) => {
@@ -1222,13 +1426,7 @@ function setActiveSection(section) {
 }
 
 function resetFilters() {
-  filterState = {
-    section: 'todos',
-    search: '',
-    platform: 'all',
-    genre: 'all',
-    sort: 'recommended'
-  };
+  filterState = { section: 'todos', search: '', platform: 'all', genre: 'all', sort: 'recommended' };
   document.getElementById('searchInput').value = '';
   document.getElementById('platformFilter').value = 'all';
   document.getElementById('genreFilter').value = 'all';
@@ -1247,27 +1445,85 @@ function prefillContactIfLoggedIn() {
 }
 
 /* ==========================================================================
-   Eventos y arranque
+   Eventos globales
    ========================================================================== */
 function bindEvents() {
-  // Tema claro / oscuro
+  // Aurora CoverFlow controles + swipe móvil
+  document.getElementById('cfPrev').addEventListener('click', () => stepCoverflow(-1));
+  document.getElementById('cfNext').addEventListener('click', () => stepCoverflow(1));
+
+  const cfTrack = document.getElementById('coverflowTrack');
+  cfTrack.addEventListener('click', (e) => {
+    const slot = e.target.closest('.cf-slot');
+    if (!slot) return;
+    const idx = Number(slot.dataset.cfIndex);
+    if (idx !== coverflowIndex) {
+      coverflowIndex = idx;
+      coverflowFlipped = false;
+      coverflowDiscOut = false;
+      updateAuroraPositions();
+    } else {
+      openGameDetail(GAMES[idx].id, {
+        mode: coverflowDiscOut ? 'disc' : coverflowFlipped ? 'back' : 'front'
+      });
+    }
+  });
+
+  let touchStartX = 0;
+  cfTrack.addEventListener(
+    'touchstart',
+    (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    },
+    { passive: true }
+  );
+  cfTrack.addEventListener(
+    'touchend',
+    (e) => {
+      const dx = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(dx) > 40) stepCoverflow(dx < 0 ? 1 : -1);
+    },
+    { passive: true }
+  );
+
+  // Botones del HUD Aurora
+  document.getElementById('btnHudFlip').addEventListener('click', () => {
+    coverflowFlipped = !coverflowFlipped;
+    if (coverflowFlipped) coverflowDiscOut = false;
+    updateAuroraPositions();
+  });
+
+  document.getElementById('btnHudDisc').addEventListener('click', () => {
+    coverflowDiscOut = !coverflowDiscOut;
+    if (coverflowDiscOut) coverflowFlipped = false;
+    updateAuroraPositions();
+  });
+
+  document.getElementById('btnHudInspect').addEventListener('click', () => {
+    openGameDetail(GAMES[coverflowIndex].id, {
+      mode: coverflowDiscOut ? 'disc' : coverflowFlipped ? 'back' : 'front'
+    });
+  });
+
+  document.getElementById('btnHudCart').addEventListener('click', () => {
+    addToCart(GAMES[coverflowIndex].id);
+  });
+
+  // Tema y moneda
   document.getElementById('btnThemeToggle').addEventListener('click', () => {
     state.theme = state.theme === 'dark' ? 'light' : 'dark';
     saveState();
     applyTheme();
   });
 
-  // Cambio de moneda COP / USD
   document.querySelectorAll('[data-currency]').forEach((btn) => {
     btn.addEventListener('click', () => {
       state.currency = btn.dataset.currency;
       saveState();
       syncCurrencyButtons();
-      updateHeroSpotlight();
+      updateAuroraHud();
       renderCatalog();
-      if (document.getElementById('cartDrawer').classList.contains('open')) {
-        renderCartDrawer();
-      }
+      if (document.getElementById('cartDrawer').classList.contains('open')) renderCartDrawer();
       showToast(`Precios mostrados en ${state.currency}.`);
     });
   });
@@ -1278,71 +1534,47 @@ function bindEvents() {
   document.getElementById('mobileNavDrawer').addEventListener('click', (e) => {
     if (e.target.id === 'mobileNavDrawer') closeMobileMenu();
   });
-
   document.querySelectorAll('[data-mobile-nav]').forEach((link) => {
     link.addEventListener('click', () => {
       setActiveSection(link.dataset.mobileNav);
       closeMobileMenu();
     });
   });
-
   document.querySelectorAll('[data-mobile-close]').forEach((link) => {
     link.addEventListener('click', closeMobileMenu);
   });
-
   document.getElementById('btnMobilePersonalize').addEventListener('click', () => {
     closeMobileMenu();
     openPrefsModal();
   });
-
   document.getElementById('btnMobileAuth').addEventListener('click', () => {
     closeMobileMenu();
     if (state.user) openAccountDrawer('profile');
     else openAuthModal();
   });
 
-  // Navegación desktop directa a secciones
+  // Header & navegación
   document.querySelectorAll('[data-nav-section]').forEach((link) => {
-    link.addEventListener('click', () => {
-      setActiveSection(link.dataset.navSection);
-    });
+    link.addEventListener('click', () => setActiveSection(link.dataset.navSection));
   });
-
-  document.querySelectorAll('[data-jump-section]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      setActiveSection(btn.dataset.jumpSection);
-      document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
-    });
-  });
-
-  // Botones header cuenta / carrito / favoritos
   document.getElementById('btnAccount').addEventListener('click', () => {
     if (state.user) openAccountDrawer('profile');
     else openAuthModal();
   });
   document.getElementById('btnOpenWishlist').addEventListener('click', () => openAccountDrawer('wishlist'));
   document.getElementById('btnOpenCart').addEventListener('click', openCart);
-
-  // Hero spotlight y personalización
-  document.getElementById('btnSpotlightDetail').addEventListener('click', (e) => {
-    openGameDetail(e.currentTarget.dataset.gameId || GAMES[0].id, false);
-  });
-  document.getElementById('btnHeroPersonalize').addEventListener('click', openPrefsModal);
   document.getElementById('btnOpenPrefs').addEventListener('click', openPrefsModal);
   document.getElementById('btnFooterPrefs').addEventListener('click', openPrefsModal);
 
-  // Presets rápidos de gustos
   document.getElementById('presetChips').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-preset]');
     if (btn) applyTastePreset(btn.dataset.preset);
   });
 
-  // Pestañas de sección del catálogo
+  // Catálogo filtros
   document.querySelectorAll('.tab-btn[data-section]').forEach((btn) => {
     btn.addEventListener('click', () => setActiveSection(btn.dataset.section));
   });
-
-  // Búsqueda, plataforma, género, orden
   document.getElementById('searchInput').addEventListener('input', (e) => {
     filterState.search = e.target.value;
     renderCatalog();
@@ -1361,8 +1593,38 @@ function bindEvents() {
   });
   document.getElementById('btnResetFilters').addEventListener('click', resetFilters);
 
-  // Delegación global de clicks en catálogo, tráilers y drawers
+  // Noticias filtros
+  document.getElementById('newsFilters').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-news-cat]');
+    if (!btn) return;
+    newsCategory = btn.dataset.newsCat;
+    document.querySelectorAll('#newsFilters [data-news-cat]').forEach((b) => {
+      b.classList.toggle('active', b.dataset.newsCat === newsCategory);
+    });
+    renderNews();
+  });
+
+  // Delegación global
   document.addEventListener('click', (e) => {
+    const flipCardBtn = e.target.closest('[data-flip-card]');
+    if (flipCardBtn) {
+      e.stopPropagation();
+      const card = flipCardBtn.closest('.game-card');
+      const stage = card?.querySelector('.case-stage');
+      if (stage) {
+        const isFlipped = stage.classList.toggle('flipped');
+        flipCardBtn.textContent = isFlipped ? '↺ Portada' : '↺ Reverso';
+      }
+      return;
+    }
+
+    const openDiscBtn = e.target.closest('[data-open-disc]');
+    if (openDiscBtn) {
+      e.stopPropagation();
+      openGameDetail(openDiscBtn.dataset.openDisc, { mode: 'disc' });
+      return;
+    }
+
     const wishBtn = e.target.closest('[data-toggle-wishlist]');
     if (wishBtn) {
       e.stopPropagation();
@@ -1379,7 +1641,13 @@ function bindEvents() {
 
     const detailBtn = e.target.closest('[data-open-detail]');
     if (detailBtn) {
-      openGameDetail(detailBtn.dataset.openDetail, false);
+      openGameDetail(detailBtn.dataset.openDetail, { mode: 'front' });
+      return;
+    }
+
+    const newsCard = e.target.closest('[data-open-news]');
+    if (newsCard) {
+      openNewsModal(newsCard.dataset.openNews);
       return;
     }
 
@@ -1423,16 +1691,11 @@ function bindEvents() {
       return;
     }
 
-    if (e.target.classList.contains('modal-backdrop')) {
-      closeModal(e.target.id);
-    }
-
-    if (e.target.classList.contains('drawer-backdrop')) {
-      closeDrawer(e.target.id);
-    }
+    if (e.target.classList.contains('modal-backdrop')) closeModal(e.target.id);
+    if (e.target.classList.contains('drawer-backdrop')) closeDrawer(e.target.id);
   });
 
-  // Modal de personalización (chips)
+  // Modal de personalización
   document.getElementById('prefsModal').addEventListener('click', (e) => {
     const eraBtn = e.target.closest('[data-pref-era]');
     if (eraBtn) {
@@ -1467,7 +1730,6 @@ function bindEvents() {
     state.prefs = clonePrefs(draftPrefs);
     saveState();
     renderPersonalizeRibbon();
-    updateHeroSpotlight();
     setActiveSection(hasCustomPrefs() ? 'parati' : 'todos');
     closeModal('prefsModal');
     showToast('Preferencias aplicadas a tu catálogo.');
@@ -1479,52 +1741,34 @@ function bindEvents() {
     renderPrefsModalOptions();
   });
 
-  // Modal de autenticación: Proveedores sociales
+  // Auth modal
   document.querySelectorAll('[data-social-provider]').forEach((btn) => {
     btn.addEventListener('click', () => startSocialAuth(btn.dataset.socialProvider));
   });
-
   document.getElementById('btnBackSocial').addEventListener('click', () => {
     document.getElementById('authSocialView').hidden = true;
     document.getElementById('authMainView').hidden = false;
   });
-
   document.getElementById('socialConfirmForm').addEventListener('submit', (e) => {
     e.preventDefault();
     if (!pendingSocialProvider) return;
     const name = document.getElementById('socialNameInput').value.trim();
     const handle = document.getElementById('socialHandleInput').value.trim();
     if (!name || !handle) return;
-    signInUser({
-      name,
-      identifier: handle,
-      provider: pendingSocialProvider.provider
-    });
+    signInUser({ name, identifier: handle, provider: pendingSocialProvider.provider });
   });
-
-  // Tabs Correo / Teléfono
   document.querySelectorAll('[data-auth-tab]').forEach((btn) => {
     btn.addEventListener('click', () => switchAuthTab(btn.dataset.authTab));
   });
-
   document.getElementById('btnToggleAuthMode').addEventListener('click', toggleEmailAuthMode);
 
-  // Envío formulario Correo
   document.getElementById('emailAuthForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     const fullName = document.getElementById('authFullName').value.trim();
-
-    if (!email || !email.includes('@')) {
-      showToast('Ingresa un correo electrónico válido.');
-      return;
-    }
-    if (password.length < 6) {
-      showToast('La contraseña debe tener al menos 6 caracteres.');
-      return;
-    }
-
+    if (!email || !email.includes('@')) return showToast('Ingresa un correo electrónico válido.');
+    if (password.length < 6) return showToast('La contraseña debe tener al menos 6 caracteres.');
     const derivedName =
       authMode === 'register' && fullName
         ? fullName
@@ -1532,33 +1776,20 @@ function bindEvents() {
             .split('@')[0]
             .replace(/[._-]+/g, ' ')
             .replace(/\b\w/g, (c) => c.toUpperCase());
-
-    signInUser({
-      name: derivedName,
-      identifier: email,
-      provider: 'Correo electrónico'
-    });
+    signInUser({ name: derivedName, identifier: email, provider: 'Correo electrónico' });
     e.target.reset();
   });
 
-  // Flujo Teléfono + Código SMS OTP
   const otpInputs = Array.from({ length: 6 }, (_, i) => document.getElementById(`otpInput${i}`));
-
   otpInputs.forEach((input, index) => {
     input.addEventListener('input', (e) => {
       const clean = e.target.value.replace(/\D/g, '');
       e.target.value = clean.slice(0, 1);
-      if (clean && index < otpInputs.length - 1) {
-        otpInputs[index + 1].focus();
-      }
+      if (clean && index < otpInputs.length - 1) otpInputs[index + 1].focus();
     });
-
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Backspace' && !input.value && index > 0) {
-        otpInputs[index - 1].focus();
-      }
+      if (e.key === 'Backspace' && !input.value && index > 0) otpInputs[index - 1].focus();
     });
-
     input.addEventListener('paste', (e) => {
       const pasted = (e.clipboardData?.getData('text') || '').replace(/\D/g, '').slice(0, 6);
       if (pasted.length === 6) {
@@ -1574,22 +1805,15 @@ function bindEvents() {
   document.getElementById('btnSendOtp').addEventListener('click', () => {
     const code = document.getElementById('authPhoneCode').value;
     const number = document.getElementById('authPhoneNumber').value.replace(/[^\d\s-]/g, '').trim();
-    const digits = number.replace(/\D/g, '');
-    if (digits.length < 7) {
-      showToast('Ingresa un número de teléfono válido (mínimo 7 dígitos).');
-      return;
-    }
-
+    if (number.replace(/\D/g, '').length < 7) return showToast('Ingresa un número válido (mínimo 7 dígitos).');
     pendingPhoneFormatted = `${code} ${number}`;
     generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
     document.getElementById('phoneStep1').hidden = true;
     document.getElementById('phoneStep2').hidden = false;
     document.getElementById('phoneOtpHint').textContent = `Enviado a ${pendingPhoneFormatted}. Código de prueba SMS: ${generatedOtp}`;
-    otpInputs.forEach((box) => {
-      box.value = '';
-    });
+    otpInputs.forEach((b) => (b.value = ''));
     otpInputs[0].focus();
-    showToast(`SMS de verificación (${pendingPhoneFormatted}): tu código es ${generatedOtp}`);
+    showToast(`SMS (${pendingPhoneFormatted}): código ${generatedOtp}`);
   });
 
   document.getElementById('btnBackPhone').addEventListener('click', () => {
@@ -1600,26 +1824,15 @@ function bindEvents() {
   document.getElementById('phoneAuthForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const entered = otpInputs.map((i) => i.value).join('');
-    if (entered.length < 6) {
-      showToast('Completa los 6 dígitos del código SMS.');
-      return;
-    }
-    if (entered !== generatedOtp) {
-      showToast(`Código incorrecto. Usa el código enviado: ${generatedOtp}`);
-      return;
-    }
-
-    signInUser({
-      name: `Jugador ${pendingPhoneFormatted.slice(-4)}`,
-      identifier: pendingPhoneFormatted,
-      provider: 'Teléfono (SMS)'
-    });
+    if (entered.length < 6) return showToast('Completa los 6 dígitos del código SMS.');
+    if (entered !== generatedOtp) return showToast(`Código incorrecto. Usa: ${generatedOtp}`);
+    signInUser({ name: `Jugador ${pendingPhoneFormatted.slice(-4)}`, identifier: pendingPhoneFormatted, provider: 'Teléfono (SMS)' });
     e.target.reset();
     document.getElementById('phoneStep2').hidden = true;
     document.getElementById('phoneStep1').hidden = false;
   });
 
-  // Formulario de contacto funcional
+  // Formulario de contacto
   document.getElementById('contactForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const name = document.getElementById('contactName').value.trim();
@@ -1628,19 +1841,16 @@ function bindEvents() {
     const message = document.getElementById('contactMessage').value.trim();
     const consent = document.getElementById('contactConsent').checked;
     const feedback = document.getElementById('contactFeedback');
-
     feedback.className = 'form-feedback show';
 
     if (!name || !email || !email.includes('@') || message.length < 10) {
       feedback.classList.add('error');
-      feedback.textContent =
-        'Por favor completa tu nombre, un correo electrónico válido y un mensaje de al menos 10 caracteres.';
+      feedback.textContent = 'Completa tu nombre, un correo válido y un mensaje de al menos 10 caracteres.';
       return;
     }
-
     if (!consent) {
       feedback.classList.add('error');
-      feedback.textContent = 'Debes aceptar la autorización de contacto para enviar el formulario.';
+      feedback.textContent = 'Debes aceptar la autorización de contacto.';
       return;
     }
 
@@ -1648,31 +1858,33 @@ function bindEvents() {
     feedback.classList.add('success');
     feedback.innerHTML = `
       <strong>¡Mensaje recibido con éxito! (Radicado #${ticket})</strong><br />
-      Gracias, ${escapeHtml(name)}. Registramos tu solicitud sobre <em>${escapeHtml(topic)}</em> y
-      responderemos a <strong>${escapeHtml(email)}</strong> en menos de 24 horas hábiles.
+      Gracias, ${escapeHtml(name)}. Registramos tu solicitud sobre <em>${escapeHtml(topic)}</em> y responderemos a <strong>${escapeHtml(email)}</strong>.
     `;
     e.target.reset();
     prefillContactIfLoggedIn();
     showToast(`Solicitud enviada (#${ticket}).`);
   });
 
-  // Atajos de teclado (Escape y "/")
+  // Teclado: flechas para Aurora CoverFlow, "/" para buscar, Escape para cerrar
   document.addEventListener('keydown', (e) => {
+    const inField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+    const modalOpen = document.querySelector('.modal-backdrop.open, .drawer-backdrop.open');
+
     if (e.key === 'Escape') {
       closeModal('authModal');
       closeModal('prefsModal');
       closeModal('gameModal');
+      closeModal('newsModal');
       closeDrawer('cartDrawer');
       closeDrawer('accountDrawer');
       closeMobileMenu();
-    } else if (
-      e.key === '/' &&
-      document.activeElement?.tagName !== 'INPUT' &&
-      document.activeElement?.tagName !== 'TEXTAREA' &&
-      document.activeElement?.tagName !== 'SELECT'
-    ) {
+    } else if (!inField && !modalOpen && e.key === '/') {
       e.preventDefault();
       document.getElementById('searchInput').focus();
+    } else if (!inField && !modalOpen && e.key === 'ArrowRight') {
+      stepCoverflow(1);
+    } else if (!inField && !modalOpen && e.key === 'ArrowLeft') {
+      stepCoverflow(-1);
     }
   });
 }
@@ -1682,9 +1894,10 @@ function init() {
   syncCurrencyButtons();
   updateHeaderUI();
   updateTabCounts();
+  renderAuroraCoverflow();
   renderPersonalizeRibbon();
-  updateHeroSpotlight();
   renderCatalog();
+  renderNews();
   renderTrailers();
   prefillContactIfLoggedIn();
   bindEvents();
