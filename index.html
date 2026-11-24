@@ -233,8 +233,9 @@
               <p class="section-eyebrow">Coleccionismo interactivo · Vitrina Aurora 3D</p>
               <h1 class="aurora-title">Carátulas reales. Cajas 3D que se abren.</h1>
               <p class="aurora-subtitle">
-                En reposo ves la contraportada. Pasa el cursor (o toca) para girar a la portada
-                oficial, haz clic en la caja para abrirla y pulsa el disco interior para extraerlo.
+                Muestra cada portada oficial al frente. Pasa el mouse por encima para ver la
+                contraportada, haz clic en la caja para abrirla y pulsa el disco interior para
+                extraerlo.
               </p>
             </div>
 
@@ -272,7 +273,7 @@
 
             <div class="aurora-hud-actions">
               <button type="button" id="btnHudFlip" class="btn btn-secondary btn-sm">
-                ↺ Ver portada
+                ↺ Contraportada
               </button>
               <button type="button" id="btnHudOpen" class="btn btn-secondary btn-sm">
                 Abrir caja 3D
@@ -315,45 +316,51 @@
       </section>
 
       <!-- ====================================================================
-           CATÁLOGO DE CAJAS FÍSICAS CON FILTROS POR SECCIONES
+           CATÁLOGO VERIFICADO DE 500 VIDEOJUEGOS CON FILTROS AVANZADOS
            ==================================================================== -->
       <section class="section" id="catalogo">
         <div class="container">
           <div class="section-header">
             <div>
-              <p class="section-eyebrow">Biblioteca y tienda</p>
+              <p class="section-eyebrow">Catálogo multiplataforma verificado · 500 videojuegos</p>
               <h2 class="section-title">Cajas interactivas en edición física y digital</h2>
               <p class="section-subtitle">
-                Pasa el cursor sobre cualquier caja para girar de la contraportada a la portada
-                oficial, haz clic para abrirla en 3D y pulsa el disco interior para extraerlo o
-                insertarlo.
+                Pasa el mouse sobre cualquier portada para girar y ver su contraportada, haz clic
+                para abrir la caja en 3D y pulsa el disco interior para extraerlo o insertarlo.
               </p>
             </div>
           </div>
 
           <div class="section-tabs" role="tablist" aria-label="Filtrar por sección">
             <button type="button" class="tab-btn active" role="tab" aria-selected="true" data-section="todos">
-              Todos <span class="tab-count" id="countTodos">12</span>
+              Todos <span class="tab-count" id="countTodos">500</span>
             </button>
             <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="parati">
-              Para ti <span class="tab-count" id="countParati">6</span>
+              Para ti <span class="tab-count" id="countParati">36</span>
             </button>
             <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="lanzamiento">
-              Nuevos lanzamientos <span class="tab-count" id="countLanzamiento">4</span>
+              Lanzamientos <span class="tab-count" id="countLanzamiento">18</span>
             </button>
             <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="moderno">
-              Modernos esenciales <span class="tab-count" id="countModerno">4</span>
+              Modernos <span class="tab-count" id="countModerno">328</span>
             </button>
             <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="clasico">
-              Clásicos atemporales <span class="tab-count" id="countClasico">4</span>
+              Clásicos <span class="tab-count" id="countClasico">154</span>
             </button>
             <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="ofertas">
-              Ofertas <span class="tab-count" id="countOfertas">11</span>
+              Ofertas <span class="tab-count" id="countOfertas">0</span>
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="fisico">
+              Físicos y Digitales <span class="tab-count" id="countFisico">0</span>
+            </button>
+            <button type="button" class="tab-btn" role="tab" aria-selected="false" data-section="gratis">
+              Gratuitos <span class="tab-count" id="countGratis">0</span>
             </button>
           </div>
 
+          <!-- Fila 1: Buscador con autocompletado + Plataforma + Género + Orden -->
           <div class="filter-bar">
-            <div class="search-wrap">
+            <div class="search-wrap" id="searchContainer">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="11" cy="11" r="8"></circle>
                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -363,21 +370,31 @@
                 type="search"
                 id="searchInput"
                 class="input"
-                placeholder="Buscar título, estudio, año o consola..."
+                placeholder="Buscar juego, franquicia (GTA, Zelda), estudio, consola o año..."
                 autocomplete="off"
+                aria-expanded="false"
+                aria-controls="searchDropdown"
               />
               <span class="search-kbd" aria-hidden="true">/</span>
+              <div id="searchDropdown" class="search-dropdown" hidden></div>
             </div>
 
             <div>
               <label for="platformFilter" class="sr-only">Filtrar por plataforma</label>
               <select id="platformFilter" class="select">
                 <option value="all">Todas las plataformas</option>
+                <option value="PlayStation 5">PlayStation 5</option>
+                <option value="PlayStation 4">PlayStation 4</option>
+                <option value="PlayStation 3">PlayStation 3</option>
+                <option value="Xbox Series X/S">Xbox Series X/S</option>
+                <option value="Xbox One">Xbox One</option>
+                <option value="Xbox 360">Xbox 360</option>
+                <option value="Nintendo Switch 2">Nintendo Switch 2</option>
+                <option value="Nintendo Switch">Nintendo Switch</option>
                 <option value="PC">PC</option>
-                <option value="PlayStation">PlayStation</option>
-                <option value="Xbox">Xbox / Xbox 360</option>
-                <option value="Nintendo">Nintendo</option>
-                <option value="Retro">Retro / Clásicos</option>
+                <option value="Steam">Steam</option>
+                <option value="Epic Games Store">Epic Games Store</option>
+                <option value="Retro">Consolas Retro</option>
               </select>
             </div>
 
@@ -385,43 +402,110 @@
               <label for="genreFilter" class="sr-only">Filtrar por género</label>
               <select id="genreFilter" class="select">
                 <option value="all">Todos los géneros</option>
-                <option value="RPG">RPG</option>
                 <option value="Acción">Acción</option>
                 <option value="Aventura">Aventura</option>
+                <option value="RPG">RPG</option>
+                <option value="Mundo Abierto">Mundo Abierto</option>
                 <option value="Indie">Indie</option>
                 <option value="Estrategia">Estrategia</option>
+                <option value="Simulación">Simulación</option>
                 <option value="Terror">Terror</option>
+                <option value="Deportes y Carreras">Deportes y Carreras</option>
+                <option value="Lucha">Lucha</option>
                 <option value="Puzzle">Puzzle</option>
-                <option value="Mundo Abierto">Mundo Abierto</option>
               </select>
             </div>
 
             <div>
               <label for="sortSelect" class="sr-only">Ordenar resultados</label>
               <select id="sortSelect" class="select">
-                <option value="recommended">Orden: Recomendados</option>
+                <option value="popular">Orden: Más populares</option>
+                <option value="recommended">Recomendados para ti</option>
                 <option value="score">Mejor calificados</option>
                 <option value="newest">Más recientes</option>
                 <option value="oldest">Clásicos primero</option>
-                <option value="price-asc">Menor precio</option>
-                <option value="price-desc">Mayor precio</option>
+                <option value="price-asc">Precio: menor a mayor</option>
+                <option value="price-desc">Precio: mayor a menor</option>
               </select>
             </div>
           </div>
 
+          <!-- Fila 2: Filtros avanzados combinables -->
+          <div class="filter-bar-advanced">
+            <div>
+              <label for="priceFilter" class="sr-only">Filtrar por rango de precio</label>
+              <select id="priceFilter" class="select">
+                <option value="all">Precio: Todos</option>
+                <option value="free">Gratuitos (Free-to-Play)</option>
+                <option value="under20">Hasta $20 USD</option>
+                <option value="20to50">$20 – $50 USD</option>
+                <option value="over50">Más de $50 USD</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="yearFilter" class="sr-only">Filtrar por año de lanzamiento</label>
+              <select id="yearFilter" class="select">
+                <option value="all">Año: Todos</option>
+                <option value="2025-2026">2025 – 2026 (Recientes)</option>
+                <option value="2020-2024">2020 – 2024</option>
+                <option value="2015-2019">2015 – 2019</option>
+                <option value="2010-2014">2010 – 2014</option>
+                <option value="pre2010">Antes de 2010 (Clásicos)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="scoreFilter" class="sr-only">Filtrar por calificación mínima</label>
+              <select id="scoreFilter" class="select">
+                <option value="all">Calificación: Todas</option>
+                <option value="95">95+ Obras maestras</option>
+                <option value="90">90+ Excelentes</option>
+                <option value="80">80+ Muy recomendados</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="esrbFilter" class="sr-only">Filtrar por clasificación de edad</label>
+              <select id="esrbFilter" class="select">
+                <option value="all">Edad (ESRB): Todas</option>
+                <option value="E">E · Todos</option>
+                <option value="E10+">E10+ · Todos +10</option>
+                <option value="T">T · Adolescentes</option>
+                <option value="M">M · Maduro 17+</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="formatFilter" class="sr-only">Filtrar por formato</label>
+              <select id="formatFilter" class="select">
+                <option value="all">Formato: Físico y Digital</option>
+                <option value="fisico">Con edición física</option>
+                <option value="solo-digital">Solo digital</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Chips individuales de filtros activos -->
+          <div id="activeFilterChips" class="active-filter-chips" aria-label="Filtros activos"></div>
+
           <div class="filter-meta-row">
             <div class="filter-active-summary">
-              <span id="resultsCount">Mostrando 12 videojuegos</span>
+              <span id="resultsCount">Cargando catálogo de 500 videojuegos...</span>
               <button type="button" id="btnResetFilters" class="link-btn" hidden>
-                Limpiar filtros
+                Limpiar todos los filtros
               </button>
             </div>
-            <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-muted)">
-              Cupones activos: SENA2026 (-20%) · KRONO15 (-15%)
+            <span id="catalogMetaInfo" style="font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-muted)">
+              Fuentes verificadas · Actualizado 2026-11-24
             </span>
           </div>
 
-          <div class="games-grid" id="gamesGrid" aria-live="polite"></div>
+          <div class="games-grid" id="gamesGrid" aria-live="polite">
+            <div class="catalog-loading">Cargando 500 videojuegos verificados...</div>
+          </div>
+
+          <div id="catalogPagination" class="catalog-pagination" hidden></div>
         </div>
       </section>
 

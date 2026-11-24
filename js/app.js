@@ -2,10 +2,8 @@ import {
   CASE_THEMES,
   DEMO_SOCIAL_ACCOUNTS,
   ERAS,
-  GAMES,
-  GENRES,
+  GAMES as FALLBACK_GAMES,
   NEWS_ITEMS,
-  PLATFORMS,
   PROMO_CODES,
   TASTE_PRESETS,
   USD_TO_COP
@@ -16,8 +14,20 @@ import {
   toggleAuroraDisc
 } from './components/aurora-case.js';
 import { KRONO_CONFIG } from './config.js';
+import {
+  CATALOG_GENRES,
+  CATALOG_PLATFORMS,
+  clearSearchHistory,
+  filterAndSortCatalog,
+  getRelatedGames,
+  getSearchHistory,
+  getSearchSuggestions,
+  loadCatalog,
+  pushSearchHistory
+} from './services/catalog-service.js';
 
 const STORAGE_KEY = 'krono_store_state_v2';
+const BASE_TITLE = 'KRONO — Tienda Especializada de Videojuegos, Cajas 3D y Noticias';
 
 const defaultState = {
   theme: 'dark',
@@ -38,17 +48,29 @@ const defaultState = {
 };
 
 let state = loadState();
-let filterState = {
+let catalogGames = FALLBACK_GAMES;
+let catalogMeta = { total: FALLBACK_GAMES.length, lastUpdated: '2026-11-24', sources: [] };
+let featuredGames = FALLBACK_GAMES.slice(0, 12);
+
+const defaultFilters = {
   section: 'todos',
   search: '',
   platform: 'all',
   genre: 'all',
-  sort: 'recommended'
+  priceRange: 'all',
+  yearRange: 'all',
+  minScore: 'all',
+  esrb: 'all',
+  format: 'all',
+  sort: 'popular'
 };
+
+let filterState = { ...defaultFilters };
+let visibleCount = KRONO_CONFIG.catalog.pageSize;
 
 let newsCategory = 'all';
 let coverflowIndex = 0;
-let coverflowCaseState = 'back'; // 'back' | 'front' | 'open'
+let coverflowCaseState = 'front'; // Reposo normal: 'front' | 'back' | 'open'
 let coverflowDiscOut = false;
 
 let authMode = 'login';
@@ -79,7 +101,7 @@ function saveState() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
-    // Ignorar errores de almacenamiento privado
+    // Ignorar en modo privado estricto
   }
 }
 
@@ -98,11 +120,16 @@ function hasCustomPrefs() {
   return eras.length > 0 || genres.length > 0 || platforms.length > 0 || budget !== 'all';
 }
 
+function findGameById(id) {
+  return catalogGames.find((g) => g.id === id || g.slug === id);
+}
+
 function formatPrice(usdAmount) {
+  if (Number(usdAmount) === 0) return 'Gratis';
   if (state.currency === 'USD') {
-    return `$${usdAmount.toFixed(2)} USD`;
+    return `$${Number(usdAmount).toFixed(2)} USD`;
   }
-  const cop = Math.round((usdAmount * USD_TO_COP) / 100) * 100;
+  const cop = Math.round((Number(usdAmount) * USD_TO_COP) / 100) * 100;
   return `$${cop.toLocaleString('es-CO')} COP`;
 }
 
@@ -121,7 +148,7 @@ function generateKey(gameId) {
 }
 
 function escapeHtml(str) {
-  return String(str)
+  return String(str ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -144,27 +171,29 @@ function showToast(message) {
 }
 
 function scoreGameForUser(game) {
-  let points = game.score * 0.45;
+  let points = (game.score || 80) * 0.45;
   const reasons = [];
 
   if (state.prefs.eras.includes(game.era)) {
     points += 24;
-    reasons.push(ERAS[game.era].shortLabel);
+    reasons.push(ERAS[game.era]?.shortLabel || game.era);
   }
 
-  const matchedGenres = game.genres.filter((g) => state.prefs.genres.includes(g));
+  const matchedGenres = (game.genres || []).filter((g) => state.prefs.genres.includes(g));
   if (matchedGenres.length > 0) {
     points += Math.min(28, matchedGenres.length * 16);
     reasons.push(matchedGenres[0]);
   }
 
-  const matchedPlatforms = game.platforms.filter((p) => state.prefs.platforms.includes(p));
+  const matchedPlatforms = (game.platforms || []).filter((p) =>
+    state.prefs.platforms.some((prefP) => p.toLowerCase().includes(prefP.toLowerCase()))
+  );
   if (matchedPlatforms.length > 0) {
     points += 14;
     if (reasons.length < 2) reasons.push(`en ${matchedPlatforms[0]}`);
   }
 
-  if (state.prefs.budget === 'ofertas' && (game.discount >= 20 || game.priceUSD <= 25)) {
+  if (state.prefs.budget === 'ofertas' && (game.discount >= 20 || game.priceUSD <= 20)) {
     points += 14;
     reasons.push('Gran precio');
   }
@@ -172,19 +201,19 @@ function scoreGameForUser(game) {
   if (state.wishlist.includes(game.id)) points += 8;
   if (state.recentlyViewed.includes(game.id)) points += 4;
 
-  const affinity = Math.min(99, Math.max(72, Math.round(points)));
+  const affinity = Math.min(99, Math.max(70, Math.round(points)));
   const reasonText =
     reasons.length > 0
       ? `Ideal para ti · ${reasons.slice(0, 2).join(' + ')}`
       : game.featured
-        ? 'Destacado en Aurora Krono'
+        ? 'Selección editorial Krono'
         : '';
 
   return { affinity, reasonText, matched: reasons.length > 0 };
 }
 
 /* ==========================================================================
-   Vitrina Aurora 3D CoverFlow (Reposo contraportada -> Hover portada -> Clic abrir + disco)
+   Vitrina Aurora 3D CoverFlow (Portada normal -> Hover contraportada -> Clic abrir + disco)
    ========================================================================== */
 function getCoverflowOffset(index, activeIndex, total) {
   let diff = index - activeIndex;
@@ -196,20 +225,25 @@ function getCoverflowOffset(index, activeIndex, total) {
 
 function renderAuroraCoverflow() {
   const track = document.getElementById('coverflowTrack');
-  track.innerHTML = GAMES.map((game, index) => {
-    const offset = getCoverflowOffset(index, coverflowIndex, GAMES.length);
-    const isActive = index === coverflowIndex;
-    return `
-      <div class="cf-slot" data-cf-index="${index}" data-offset="${offset}">
-        ${renderAuroraCase(game, {
-          idAttr: isActive ? 'auroraActiveCase' : '',
-          initialState: isActive ? coverflowCaseState : 'back',
-          discExtracted: isActive && coverflowDiscOut,
-          lazy: Math.abs(Number(offset) || 0) > 1
-        })}
-      </div>
-    `;
-  }).join('');
+  if (!featuredGames.length) return;
+  if (coverflowIndex >= featuredGames.length) coverflowIndex = 0;
+
+  track.innerHTML = featuredGames
+    .map((game, index) => {
+      const offset = getCoverflowOffset(index, coverflowIndex, featuredGames.length);
+      const isActive = index === coverflowIndex;
+      return `
+        <div class="cf-slot" data-cf-index="${index}" data-offset="${offset}">
+          ${renderAuroraCase(game, {
+            idAttr: isActive ? 'auroraActiveCase' : '',
+            initialState: isActive ? coverflowCaseState : 'front',
+            discExtracted: isActive && coverflowDiscOut,
+            lazy: Math.abs(Number(offset) || 0) > 1
+          })}
+        </div>
+      `;
+    })
+    .join('');
 
   updateAuroraHud();
 }
@@ -218,7 +252,7 @@ function updateAuroraPositions() {
   const slots = document.querySelectorAll('#coverflowTrack .cf-slot');
   slots.forEach((slot) => {
     const idx = Number(slot.dataset.cfIndex);
-    const offset = getCoverflowOffset(idx, coverflowIndex, GAMES.length);
+    const offset = getCoverflowOffset(idx, coverflowIndex, featuredGames.length);
     slot.dataset.offset = offset;
     const caseEl = slot.querySelector('.aurora-case');
     if (!caseEl) return;
@@ -230,17 +264,18 @@ function updateAuroraPositions() {
       }
     } else {
       caseEl.removeAttribute('id');
-      setAuroraCaseState(caseEl, 'back');
+      setAuroraCaseState(caseEl, 'front');
     }
   });
   updateAuroraHud();
 }
 
 function updateAuroraHud() {
-  const game = GAMES[coverflowIndex];
-  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.xbox;
+  const game = featuredGames[coverflowIndex];
+  if (!game) return;
+  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.pc;
   const bgImg = document.getElementById('auroraBgImg');
-  bgImg.src = game.heroBg;
+  bgImg.src = game.heroBg || game.headerImg || game.cover;
   bgImg.onerror = () => {
     bgImg.onerror = null;
     bgImg.src = game.fallbackCover;
@@ -249,22 +284,21 @@ function updateAuroraHud() {
   document.getElementById('hudKicker').innerHTML = `
     <span>${escapeHtml(theme.short)}</span>
     <span>·</span>
-    <span>${ERAS[game.era].label} (${game.year})</span>
+    <span>${escapeHtml(ERAS[game.era]?.label || game.era)} (${escapeHtml(game.releaseDate)})</span>
     <span>·</span>
     <span>Nota ${game.score}/100</span>
     <span>·</span>
-    <span>${coverflowIndex + 1} / ${GAMES.length}</span>
+    <span>${coverflowIndex + 1} / ${featuredGames.length}</span>
   `;
   document.getElementById('hudTitle').textContent = game.title;
-  document.getElementById('hudSub').textContent = `${game.studio} · ${game.genres.join(', ')} · ${formatPrice(game.priceUSD)}${game.discount ? ` (-${game.discount}%)` : ''}`;
+  document.getElementById('hudSub').textContent = `${game.developer} · ${game.platforms.slice(0, 3).join(', ')} · ${formatPrice(game.priceUSD)}${game.discount ? ` (-${game.discount}%)` : ''}`;
 
-  const flipBtn = document.getElementById('btnHudFlip');
-  const openBtn = document.getElementById('btnHudOpen');
-  const discBtn = document.getElementById('btnHudDisc');
-
-  flipBtn.textContent = coverflowCaseState === 'front' ? '↺ Contraportada' : '↺ Ver portada';
-  openBtn.textContent = coverflowCaseState === 'open' ? 'Cerrar caja' : 'Abrir caja 3D';
-  discBtn.textContent = coverflowDiscOut ? '◉ Insertar disco' : '◉ Extraer disco';
+  document.getElementById('btnHudFlip').textContent =
+    coverflowCaseState === 'back' ? '↺ Ver portada' : '↺ Contraportada';
+  document.getElementById('btnHudOpen').textContent =
+    coverflowCaseState === 'open' ? 'Cerrar caja' : 'Abrir caja 3D';
+  document.getElementById('btnHudDisc').textContent =
+    coverflowDiscOut ? '◉ Insertar disco' : '◉ Extraer disco';
 
   const inCart = state.cart.some((c) => c.id === game.id);
   const cartBtn = document.getElementById('btnHudCart');
@@ -272,14 +306,14 @@ function updateAuroraHud() {
 }
 
 function stepCoverflow(delta) {
-  coverflowIndex = (coverflowIndex + delta + GAMES.length) % GAMES.length;
-  coverflowCaseState = 'back';
+  coverflowIndex = (coverflowIndex + delta + featuredGames.length) % featuredGames.length;
+  coverflowCaseState = 'front';
   coverflowDiscOut = false;
   updateAuroraPositions();
 }
 
 /* ==========================================================================
-   Renderizado de Header, Personalización, Catálogo, Noticias y Tráilers
+   Header, Personalización y Contadores del Catálogo de 500 Juegos
    ========================================================================== */
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', state.theme);
@@ -289,11 +323,11 @@ function applyTheme() {
   if (state.theme === 'dark') {
     sun.hidden = false;
     moon.hidden = true;
-    metaTheme?.setAttribute('content', '#0A0D12');
+    metaTheme?.setAttribute('content', '#0B0D11');
   } else {
     sun.hidden = true;
     moon.hidden = false;
-    metaTheme?.setAttribute('content', '#F4F5F7');
+    metaTheme?.setAttribute('content', '#F5F4F0');
   }
 }
 
@@ -351,7 +385,7 @@ function renderPersonalizeRibbon() {
   if (hasCustomPrefs()) {
     const parts = [];
     if (state.prefs.eras.length) {
-      parts.push(`Épocas: ${state.prefs.eras.map((e) => ERAS[e].shortLabel).join(', ')}`);
+      parts.push(`Épocas: ${state.prefs.eras.map((e) => ERAS[e]?.shortLabel || e).join(', ')}`);
     }
     if (state.prefs.genres.length) {
       parts.push(`Géneros: ${state.prefs.genres.slice(0, 3).join(', ')}`);
@@ -363,7 +397,7 @@ function renderPersonalizeRibbon() {
     summary.textContent = parts.join(' · ');
   } else {
     summary.textContent =
-      'Elige un perfil rápido o configura tus épocas, géneros y consolas favoritas para reordenar el catálogo a tu medida.';
+      'Elige un perfil rápido o configura tus épocas, géneros y consolas favoritas para reordenar los 500 videojuegos a tu medida.';
   }
 
   chipsContainer.innerHTML = TASTE_PRESETS.map(
@@ -380,117 +414,212 @@ function renderPersonalizeRibbon() {
 }
 
 function updateTabCounts() {
-  document.getElementById('countTodos').textContent = String(GAMES.length);
-  document.getElementById('countLanzamiento').textContent = String(
-    GAMES.filter((g) => g.era === 'lanzamiento').length
-  );
-  document.getElementById('countModerno').textContent = String(
-    GAMES.filter((g) => g.era === 'moderno').length
-  );
-  document.getElementById('countClasico').textContent = String(
-    GAMES.filter((g) => g.era === 'clasico').length
-  );
-  document.getElementById('countOfertas').textContent = String(
-    GAMES.filter((g) => g.discount > 0).length
-  );
-  document.getElementById('countParati').textContent = '6';
+  const setTxt = (id, n) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(n);
+  };
+  setTxt('countTodos', catalogGames.length);
+  setTxt('countParati', Math.min(36, catalogGames.length));
+  setTxt('countLanzamiento', catalogGames.filter((g) => g.era === 'lanzamiento' || g.year >= 2025).length);
+  setTxt('countModerno', catalogGames.filter((g) => g.era === 'moderno').length);
+  setTxt('countClasico', catalogGames.filter((g) => g.era === 'clasico').length);
+  setTxt('countOfertas', catalogGames.filter((g) => g.discount > 0).length);
+  setTxt('countFisico', catalogGames.filter((g) => g.format.toLowerCase().includes('físico')).length);
+  setTxt('countGratis', catalogGames.filter((g) => g.priceUSD === 0).length);
+
+  const metaEl = document.getElementById('catalogMetaInfo');
+  if (metaEl) {
+    metaEl.textContent = `${catalogGames.length} videojuegos verificados · Actualizado ${catalogMeta.lastUpdated}`;
+  }
 }
 
-function getFilteredGames() {
-  let list = GAMES.map((game) => ({
-    game,
-    ...scoreGameForUser(game)
-  }));
+/* ==========================================================================
+   Buscador con Autocompletado, Historial y Chips Removibles (Fase 6)
+   ========================================================================== */
+function renderSearchDropdown() {
+  const dropdown = document.getElementById('searchDropdown');
+  const input = document.getElementById('searchInput');
+  const q = input.value.trim();
 
-  if (filterState.section === 'lanzamiento') {
-    list = list.filter((item) => item.game.era === 'lanzamiento');
-  } else if (filterState.section === 'moderno') {
-    list = list.filter((item) => item.game.era === 'moderno');
-  } else if (filterState.section === 'clasico') {
-    list = list.filter((item) => item.game.era === 'clasico');
-  } else if (filterState.section === 'ofertas') {
-    list = list.filter((item) => item.game.discount > 0);
-  } else if (filterState.section === 'parati') {
-    list = list.sort((a, b) => b.affinity - a.affinity).slice(0, 6);
+  if (q.length >= 2) {
+    const suggestions = getSearchSuggestions(catalogGames, q, 7);
+    if (suggestions.length === 0) {
+      dropdown.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      return;
+    }
+    dropdown.innerHTML = `
+      <div class="search-dropdown__header">
+        <span>Sugerencias instantáneas</span>
+        <span>${suggestions.length} coincidencias</span>
+      </div>
+      ${suggestions
+        .map((s) =>
+          s.type === 'game'
+            ? `<button type="button" class="search-dropdown__item" data-suggest-game="${escapeHtml(s.id)}">
+                 <strong>${escapeHtml(s.label)}</strong>
+                 <span class="search-dropdown__meta">${escapeHtml(s.meta)}</span>
+               </button>`
+            : `<button type="button" class="search-dropdown__item" data-suggest-query="${escapeHtml(s.query)}">
+                 <span>${escapeHtml(s.label)}</span>
+                 <span class="search-dropdown__meta">${escapeHtml(s.meta)}</span>
+               </button>`
+        )
+        .join('')}
+    `;
+    dropdown.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+    return;
   }
 
-  if (filterState.platform !== 'all') {
-    list = list.filter((item) => item.game.platforms.includes(filterState.platform));
+  const history = getSearchHistory();
+  if (history.length === 0) {
+    dropdown.hidden = true;
+    input.setAttribute('aria-expanded', 'false');
+    return;
   }
 
-  if (filterState.genre !== 'all') {
-    list = list.filter((item) => item.game.genres.includes(filterState.genre));
-  }
+  dropdown.innerHTML = `
+    <div class="search-dropdown__header">
+      <span>Búsquedas recientes</span>
+      <button type="button" id="btnClearHistory" class="link-btn" style="font-size: 11px">Borrar</button>
+    </div>
+    ${history
+      .map(
+        (term) => `
+      <button type="button" class="search-dropdown__item" data-suggest-query="${escapeHtml(term)}">
+        <span>↺ ${escapeHtml(term)}</span>
+        <span class="search-dropdown__meta">Reciente</span>
+      </button>
+    `
+      )
+      .join('')}
+  `;
+  dropdown.hidden = false;
+  input.setAttribute('aria-expanded', 'true');
+}
 
-  if (filterState.search.trim()) {
-    const q = filterState.search.trim().toLowerCase();
-    list = list.filter(({ game }) => {
-      const haystack = `${game.title} ${game.studio} ${game.year} ${game.genres.join(' ')} ${game.platforms.join(' ')} ${ERAS[game.era].label}`.toLowerCase();
-      return haystack.includes(q);
+function hideSearchDropdown() {
+  const dropdown = document.getElementById('searchDropdown');
+  const input = document.getElementById('searchInput');
+  if (dropdown) dropdown.hidden = true;
+  if (input) input.setAttribute('aria-expanded', 'false');
+}
+
+function renderActiveFilterChips() {
+  const container = document.getElementById('activeFilterChips');
+  const chips = [];
+
+  if (filterState.section !== 'todos') {
+    const labels = {
+      parati: 'Para ti',
+      lanzamiento: 'Lanzamientos',
+      moderno: 'Modernos',
+      clasico: 'Clásicos',
+      ofertas: 'Ofertas',
+      fisico: 'Físicos y Digitales',
+      gratis: 'Gratuitos'
+    };
+    chips.push({ key: 'section', label: `Sección: ${labels[filterState.section] || filterState.section}` });
+  }
+  if (filterState.search.trim()) chips.push({ key: 'search', label: `Búsqueda: "${filterState.search.trim()}"` });
+  if (filterState.platform !== 'all') chips.push({ key: 'platform', label: `Plataforma: ${filterState.platform}` });
+  if (filterState.genre !== 'all') chips.push({ key: 'genre', label: `Género: ${filterState.genre}` });
+  if (filterState.priceRange !== 'all') {
+    const map = { free: 'Gratis', under20: 'Hasta $20 USD', '20to50': '$20–$50 USD', over50: 'Más de $50 USD' };
+    chips.push({ key: 'priceRange', label: `Precio: ${map[filterState.priceRange]}` });
+  }
+  if (filterState.yearRange !== 'all') chips.push({ key: 'yearRange', label: `Año: ${filterState.yearRange}` });
+  if (filterState.minScore !== 'all') chips.push({ key: 'minScore', label: `Nota: ${filterState.minScore}+` });
+  if (filterState.esrb !== 'all') chips.push({ key: 'esrb', label: `ESRB: ${filterState.esrb}` });
+  if (filterState.format !== 'all') {
+    chips.push({
+      key: 'format',
+      label: filterState.format === 'fisico' ? 'Formato: Con edición física' : 'Formato: Solo digital'
     });
   }
 
-  switch (filterState.sort) {
-    case 'score':
-      list.sort((a, b) => b.game.score - a.game.score);
-      break;
-    case 'newest':
-      list.sort((a, b) => b.game.year - a.game.year);
-      break;
-    case 'oldest':
-      list.sort((a, b) => a.game.year - b.game.year);
-      break;
-    case 'price-asc':
-      list.sort((a, b) => a.game.priceUSD - b.game.priceUSD);
-      break;
-    case 'price-desc':
-      list.sort((a, b) => b.game.priceUSD - a.game.priceUSD);
-      break;
-    default:
-      list.sort((a, b) => b.affinity - a.affinity);
-      break;
-  }
+  container.innerHTML = chips
+    .map(
+      (c) => `
+      <span class="filter-chip">
+        <span>${escapeHtml(c.label)}</span>
+        <button type="button" data-remove-filter="${c.key}" aria-label="Quitar filtro ${escapeHtml(c.label)}">×</button>
+      </span>
+    `
+    )
+    .join('');
 
-  return list;
+  return chips.length > 0;
 }
 
+function removeSingleFilter(key) {
+  if (key === 'section') {
+    setActiveSection('todos');
+    return;
+  }
+  filterState[key] = defaultFilters[key];
+  const elMap = {
+    search: 'searchInput',
+    platform: 'platformFilter',
+    genre: 'genreFilter',
+    priceRange: 'priceFilter',
+    yearRange: 'yearFilter',
+    minScore: 'scoreFilter',
+    esrb: 'esrbFilter',
+    format: 'formatFilter'
+  };
+  const el = document.getElementById(elMap[key]);
+  if (el) el.value = filterState[key];
+  visibleCount = KRONO_CONFIG.catalog.pageSize;
+  renderCatalog();
+}
+
+/* ==========================================================================
+   Renderizado Paginado del Catálogo (24 por bloque para rendimiento óptimo)
+   ========================================================================== */
 function renderCatalog() {
   const grid = document.getElementById('gamesGrid');
   const resultsCount = document.getElementById('resultsCount');
   const resetBtn = document.getElementById('btnResetFilters');
-  const items = getFilteredGames();
+  const paginationEl = document.getElementById('catalogPagination');
 
-  const hasActiveFilters =
-    filterState.section !== 'todos' ||
-    filterState.platform !== 'all' ||
-    filterState.genre !== 'all' ||
-    filterState.search.trim() !== '';
-
+  const items = filterAndSortCatalog(catalogGames, filterState, scoreGameForUser);
+  const hasActiveFilters = renderActiveFilterChips();
   resetBtn.hidden = !hasActiveFilters;
-  resultsCount.textContent =
-    items.length === 1 ? 'Mostrando 1 videojuego' : `Mostrando ${items.length} videojuegos`;
 
-  if (items.length === 0) {
+  const totalMatches = items.length;
+  const shownItems = items.slice(0, visibleCount);
+
+  resultsCount.textContent =
+    totalMatches === 0
+      ? '0 coincidencias encontradas'
+      : `Mostrando ${shownItems.length} de ${totalMatches} videojuegos${hasActiveFilters ? ' filtrados' : ''}`;
+
+  if (totalMatches === 0) {
     grid.innerHTML = `
       <div class="empty-state">
-        <h3>No encontramos juegos con esos filtros</h3>
-        <p style="color: var(--ink-secondary); margin: 0 0 18px">Prueba cambiando la plataforma, el género o limpiando tu búsqueda.</p>
-        <button type="button" class="btn btn-primary btn-sm" id="btnEmptyReset">Ver todo el catálogo</button>
+        <h3>No encontramos videojuegos con esta combinación de filtros</h3>
+        <p style="color: var(--ink-secondary); margin: 0 0 18px">
+          Elimina alguno de los filtros activos o prueba buscar por franquicia (GTA, Zelda, Halo, Mario, Elden Ring).
+        </p>
+        <button type="button" class="btn btn-primary btn-sm" id="btnEmptyReset">Ver los ${catalogGames.length} videojuegos</button>
       </div>
     `;
+    paginationEl.hidden = true;
     document.getElementById('btnEmptyReset')?.addEventListener('click', resetFilters);
     return;
   }
 
   const showAffinity = hasCustomPrefs() || filterState.section === 'parati';
 
-  grid.innerHTML = items
+  grid.innerHTML = shownItems
     .map(({ game, affinity, reasonText }) => {
       const isWishlisted = state.wishlist.includes(game.id);
       const inCart = state.cart.some((c) => c.id === game.id);
 
       return `
-        <article class="game-card" data-game-card="${game.id}">
+        <article class="game-card" data-game-card="${escapeHtml(game.id)}">
           <div class="card-case-box">
             <div class="cover-top-actions">
               <div style="display: flex; gap: 5px; align-items: center">
@@ -500,7 +629,7 @@ function renderCatalog() {
               <button
                 type="button"
                 class="wishlist-btn ${isWishlisted ? 'saved' : ''}"
-                data-toggle-wishlist="${game.id}"
+                data-toggle-wishlist="${escapeHtml(game.id)}"
                 aria-label="${isWishlisted ? 'Quitar de favoritos' : 'Guardar en favoritos'}"
                 aria-pressed="${isWishlisted}"
               >
@@ -510,15 +639,15 @@ function renderCatalog() {
               </button>
             </div>
 
-            <div data-card-case-trigger="${game.id}">
-              ${renderAuroraCase(game, { initialState: 'back', compact: true, lazy: true })}
+            <div data-card-case-trigger="${escapeHtml(game.id)}">
+              ${renderAuroraCase(game, { initialState: 'front', compact: true, lazy: true })}
             </div>
 
             <div class="card-case-controls">
-              <button type="button" class="mini-pill-btn" data-flip-card="${game.id}" title="Alternar entre contraportada y portada frontal">
-                ↺ Portada
+              <button type="button" class="mini-pill-btn" data-flip-card="${escapeHtml(game.id)}" title="Ver contraportada">
+                ↺ Reverso
               </button>
-              <button type="button" class="mini-pill-btn" data-open-case-card="${game.id}" title="Abrir caja 3D y ver el disco interior">
+              <button type="button" class="mini-pill-btn" data-open-case-card="${escapeHtml(game.id)}" title="Abrir caja 3D y ver el disco">
                 ◉ Abrir caja
               </button>
             </div>
@@ -526,16 +655,16 @@ function renderCatalog() {
 
           <div class="game-body">
             <div class="game-meta-top">
-              <span>${escapeHtml(game.studio)} · ${game.year}</span>
-              <span class="game-score" title="Calificación">${game.score}</span>
+              <span>${escapeHtml(game.developer)} · ${game.year}</span>
+              <span class="game-score" title="${escapeHtml(game.ratingSource)}">${game.score}</span>
             </div>
 
-            <h3 class="game-title" data-open-detail="${game.id}">${escapeHtml(game.title)}</h3>
+            <h3 class="game-title" data-open-detail="${escapeHtml(game.id)}">${escapeHtml(game.title)}</h3>
 
             ${showAffinity && reasonText ? `<p class="game-reason">${escapeHtml(reasonText)}</p>` : ''}
 
             <div class="game-platforms">
-              ${game.genres.slice(0, 2).join(' · ')} — ${game.platforms.slice(0, 3).join(', ')}
+              ${escapeHtml(game.genres.slice(0, 2).join(' · '))} — ${escapeHtml(game.platforms.slice(0, 3).join(', '))}
             </div>
 
             <div class="game-footer">
@@ -548,7 +677,7 @@ function renderCatalog() {
                 <button
                   type="button"
                   class="btn btn-secondary btn-sm"
-                  data-open-detail="${game.id}"
+                  data-open-detail="${escapeHtml(game.id)}"
                   aria-label="Abrir ficha completa de ${escapeHtml(game.title)}"
                 >
                   <span class="btn-detail-label">Ficha</span>
@@ -557,7 +686,7 @@ function renderCatalog() {
                 <button
                   type="button"
                   class="btn ${inCart ? 'btn-accent' : 'btn-primary'} btn-sm"
-                  data-add-cart="${game.id}"
+                  data-add-cart="${escapeHtml(game.id)}"
                 >
                   ${inCart ? 'En carrito ✓' : 'Añadir'}
                 </button>
@@ -568,8 +697,49 @@ function renderCatalog() {
       `;
     })
     .join('');
+
+  // Paginación progresiva
+  const remaining = totalMatches - shownItems.length;
+  if (remaining > 0) {
+    paginationEl.hidden = false;
+    paginationEl.innerHTML = `
+      <span class="catalog-pagination__status">
+        Mostrando ${shownItems.length} de ${totalMatches} videojuegos · Restan ${remaining}
+      </span>
+      <div class="catalog-pagination__actions">
+        <button type="button" id="btnLoadMore" class="btn btn-primary btn-sm">
+          Cargar ${Math.min(KRONO_CONFIG.catalog.pageSize, remaining)} videojuegos más
+        </button>
+        ${
+          remaining <= 72
+            ? `<button type="button" id="btnLoadAll" class="btn btn-secondary btn-sm">Mostrar los ${totalMatches}</button>`
+            : ''
+        }
+      </div>
+    `;
+    document.getElementById('btnLoadMore')?.addEventListener('click', () => {
+      visibleCount += KRONO_CONFIG.catalog.pageSize;
+      renderCatalog();
+    });
+    document.getElementById('btnLoadAll')?.addEventListener('click', () => {
+      visibleCount = totalMatches;
+      renderCatalog();
+    });
+  } else {
+    paginationEl.hidden = totalMatches <= KRONO_CONFIG.catalog.pageSize;
+    if (!paginationEl.hidden) {
+      paginationEl.innerHTML = `
+        <span class="catalog-pagination__status">
+          Has visto todos los ${totalMatches} videojuegos de esta selección.
+        </span>
+      `;
+    }
+  }
 }
 
+/* ==========================================================================
+   Noticias y Tráilers
+   ========================================================================== */
 function renderNews() {
   const grid = document.getElementById('newsGrid');
   const filtered =
@@ -601,7 +771,7 @@ function openNewsModal(newsId) {
   const item = NEWS_ITEMS.find((n) => n.id === newsId);
   if (!item) return;
 
-  const related = GAMES.find((g) => g.id === item.relatedGameId);
+  const related = findGameById(item.relatedGameId);
   document.getElementById('newsModalMeta').textContent = `${item.category} · ${item.date} · Lectura ${item.readTime}`;
   document.getElementById('newsModalTitle').textContent = item.title;
 
@@ -627,7 +797,7 @@ function openNewsModal(newsId) {
           <div style="font-size: 12.5px; color: var(--ink-secondary)">${formatPrice(related.priceUSD)} · Nota ${related.score}/100</div>
         </div>
         <button type="button" class="btn btn-primary btn-sm" id="btnNewsOpenGame">
-          Ver caja 3D y disco →
+          Abrir ficha y caja 3D →
         </button>
       </div>
     `
@@ -646,17 +816,17 @@ function openNewsModal(newsId) {
 }
 
 function renderTrailers() {
-  const featuredIds = ['expedition-33', 'elden-ring', 'halo-mcc'];
+  const featuredIds = ['grand-theft-auto-vi', 'expedition-33', 'elden-ring'];
   const container = document.getElementById('trailersGrid');
 
   container.innerHTML = featuredIds
     .map((id) => {
-      const game = GAMES.find((g) => g.id === id);
-      if (!game) return '';
+      const game = findGameById(id);
+      if (!game || !game.trailerId) return '';
       return `
         <article class="trailer-card">
-          <div class="trailer-player" data-trailer-embed="${game.youtubeId}" data-trailer-title="${escapeHtml(game.title)}">
-            <img src="${game.headerImg}" alt="Vista previa del tráiler de ${escapeHtml(game.title)}" loading="lazy" onerror="this.onerror=null;this.src='${game.fallbackCover}'" />
+          <div class="trailer-player" data-trailer-embed="${game.trailerId}" data-trailer-title="${escapeHtml(game.title)}">
+            <img src="${game.headerImg || game.cover}" alt="Vista previa del tráiler de ${escapeHtml(game.title)}" loading="lazy" onerror="this.onerror=null;this.src='${game.fallbackCover}'" />
             <button type="button" class="play-overlay" aria-label="Reproducir tráiler oficial de ${escapeHtml(game.title)}">
               <span class="play-circle">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
@@ -666,7 +836,7 @@ function renderTrailers() {
           </div>
           <div class="trailer-meta">
             <h3>${escapeHtml(game.title)} (${game.year})</h3>
-            <p>${ERAS[game.era].label} · ${escapeHtml(game.studio)} · <a href="https://www.youtube.com/watch?v=${game.youtubeId}" target="_blank" rel="noopener noreferrer" class="link-btn">Abrir en YouTube ↗</a></p>
+            <p>${escapeHtml(ERAS[game.era]?.label || game.era)} · ${escapeHtml(game.developer)} · <a href="https://www.youtube.com/watch?v=${game.trailerId}" target="_blank" rel="noopener noreferrer" class="link-btn">Abrir en YouTube ↗</a></p>
           </div>
         </article>
       `;
@@ -675,7 +845,7 @@ function renderTrailers() {
 }
 
 /* ==========================================================================
-   Modales y Drawers
+   Modales, Drawers y Enrutamiento Amigable (#/juego/<slug>)
    ========================================================================== */
 function openModal(id) {
   const el = document.getElementById(id);
@@ -685,13 +855,18 @@ function openModal(id) {
   document.body.style.overflow = 'hidden';
 }
 
-function closeModal(id) {
+function closeModal(id, { updateHash = true } = {}) {
   const el = document.getElementById(id);
   if (!el) return;
   el.classList.remove('open');
   el.setAttribute('aria-hidden', 'true');
   if (id === 'gameModal') {
     document.getElementById('detailContent').innerHTML = '';
+    document.title = BASE_TITLE;
+    document.getElementById('dynamicProductJsonLd')?.remove();
+    if (updateHash && window.location.hash.startsWith('#/juego/')) {
+      history.replaceState(null, '', '#catalogo');
+    }
   }
   restoreBodyScroll();
 }
@@ -733,29 +908,72 @@ function closeMobileMenu() {
   restoreBodyScroll();
 }
 
+function injectProductJsonLd(game) {
+  document.getElementById('dynamicProductJsonLd')?.remove();
+  const script = document.createElement('script');
+  script.id = 'dynamicProductJsonLd';
+  script.type = 'application/ld+json';
+  script.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'VideoGame',
+    name: game.title,
+    description: game.description,
+    image: game.cover,
+    genre: game.genres,
+    gamePlatform: game.platforms,
+    datePublished: game.releaseDate,
+    author: { '@type': 'Organization', name: game.developer },
+    publisher: { '@type': 'Organization', name: game.publisher },
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'USD',
+      price: game.priceUSD,
+      availability: 'https://schema.org/PreOrder'
+    }
+  });
+  document.head.appendChild(script);
+}
+
 /* ==========================================================================
-   Inspector Completo de Caja Física 3D (Portada, Contraportada, Disco, Tráiler)
+   Ficha Individual Profesional de Cada Videojuego (Fase 7)
    ========================================================================== */
-function openGameDetail(gameId, { mode = 'front' } = {}) {
-  const game = GAMES.find((g) => g.id === gameId);
+function openGameDetail(gameId, { mode = 'front', pushRoute = true } = {}) {
+  const game = findGameById(gameId);
   if (!game) return;
 
-  if (!state.recentlyViewed.includes(gameId)) {
-    state.recentlyViewed.unshift(gameId);
-    state.recentlyViewed = state.recentlyViewed.slice(0, 6);
+  if (pushRoute) {
+    const targetHash = `#/juego/${encodeURIComponent(game.slug || game.id)}`;
+    if (window.location.hash !== targetHash) {
+      history.pushState(null, '', targetHash);
+    }
+  }
+
+  document.title = `${game.title} (${game.year}) — KRONO Game Store`;
+  injectProductJsonLd(game);
+
+  if (!state.recentlyViewed.includes(game.id)) {
+    state.recentlyViewed.unshift(game.id);
+    state.recentlyViewed = state.recentlyViewed.slice(0, 8);
     saveState();
   }
 
-  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.xbox;
+  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.pc;
   const { affinity, reasonText } = scoreGameForUser(game);
   const isWishlisted = state.wishlist.includes(game.id);
   const inCart = state.cart.some((c) => c.id === game.id);
+  const related = getRelatedGames(catalogGames, game, 4);
 
-  document.getElementById('detailKicker').textContent = `${theme.label} · ${ERAS[game.era].label} (${game.year}) · ${game.studio}`;
+  const initialCaseState = mode === 'disc' || mode === 'open' ? 'open' : mode === 'back' ? 'back' : 'front';
+  const initialDiscOut = mode === 'disc';
+
+  document.getElementById('detailKicker').textContent = `${game.franchise} · ${game.releaseDate} · ${game.developer}`;
   document.getElementById('detailTitle').textContent = game.title;
 
-  const initialCaseState = mode === 'disc' || mode === 'open' ? 'open' : mode === 'front' ? 'front' : 'back';
-  const initialDiscOut = mode === 'disc';
+  const trailerActionHtml = game.trailerId
+    ? `<button type="button" class="btn btn-secondary btn-sm" id="btnDetailTrailer">▶ Tráiler oficial</button>`
+    : `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(game.title + ' official trailer')}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">▶ Buscar tráiler ↗</a>`;
+
+  const shots = (game.screenshots || []).slice(0, 2);
 
   const content = document.getElementById('detailContent');
   content.innerHTML = `
@@ -773,11 +991,11 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
         </div>
 
         <div class="inspector-toolbar" role="group" aria-label="Controles de caja física 3D">
-          <button type="button" class="btn btn-sm ${initialCaseState === 'back' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="back">
-            Contraportada
-          </button>
           <button type="button" class="btn btn-sm ${initialCaseState === 'front' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="front">
             Portada
+          </button>
+          <button type="button" class="btn btn-sm ${initialCaseState === 'back' ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="back">
+            ↺ Contraportada
           </button>
           <button type="button" class="btn btn-sm ${initialCaseState === 'open' && !initialDiscOut ? 'btn-primary' : 'btn-secondary'}" data-insp-mode="open">
             Abrir caja
@@ -790,7 +1008,7 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
           </button>
         </div>
 
-        <p style="margin: 0; font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted); text-align: center">
+        <p style="margin: 0; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-muted); text-align: center">
           ${escapeHtml(theme.discFormat)} · ${escapeHtml(game.serial)}
         </p>
       </div>
@@ -798,40 +1016,60 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
       <div>
         <div class="detail-specs-row">
           <span class="meta-tag" style="color: var(--accent)">Nota ${game.score}/100</span>
+          <span class="meta-tag">${escapeHtml(game.ratingSource)}</span>
           <span class="meta-tag">${escapeHtml(game.esrb)} · ${escapeHtml(game.esrbText)}</span>
-          <span class="meta-tag">Duración: ${game.playtime}</span>
-          <span class="meta-tag">${escapeHtml(game.players)}</span>
+          <span class="meta-tag">${escapeHtml(game.format)}</span>
           ${hasCustomPrefs() ? `<span class="meta-tag" style="color: var(--accent)">${affinity}% afinidad</span>` : ''}
         </div>
 
-        <p style="margin: 0 0 10px; color: var(--ink-secondary)">${escapeHtml(game.synopsis)}</p>
+        <p style="margin: 0 0 10px; color: var(--ink-secondary)">${escapeHtml(game.description)}</p>
+
+        ${
+          shots.length
+            ? `<div class="detail-gallery">
+                ${shots
+                  .map(
+                    (src, i) =>
+                      `<img src="${escapeHtml(src)}" alt="Captura ${i + 1} de ${escapeHtml(game.title)}" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(game.fallbackCover)}'" />`
+                  )
+                  .join('')}
+               </div>`
+            : ''
+        }
 
         <div class="editorial-note">
-          <strong>Por qué vale la pena</strong>
+          <strong>Por qué destaca en el archivo</strong>
           ${escapeHtml(game.whyWorthIt)}
         </div>
 
         ${reasonText && hasCustomPrefs() ? `<p class="game-reason" style="margin-bottom: 10px">${escapeHtml(reasonText)}</p>` : ''}
 
-        <p style="margin: 0 0 5px; font-size: 13px; color: var(--ink-secondary)">
-          <strong>Edición:</strong> ${escapeHtml(game.edition)} · <strong>Video:</strong> ${escapeHtml(game.resolution)}
-        </p>
-        <p style="margin: 0 0 14px; font-size: 13px; color: var(--ink-secondary)">
-          <strong>Compatibilidad:</strong> ${escapeHtml(game.specs)}
-        </p>
-
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px">
-          ${game.tags.map((t) => `<span class="meta-tag">${escapeHtml(t)}</span>`).join('')}
+        <div class="detail-availability-box">
+          <div><strong>Disponibilidad:</strong> <span style="color: var(--accent)">${escapeHtml(game.availabilityStatus)}</span></div>
+          <div><strong>Formato y ediciones:</strong> ${escapeHtml(game.format)} · ${escapeHtml(game.editions.join(' / '))}</div>
+          <div><strong>Entrega estimada:</strong> Digital (clave oficial tras confirmación de pago) · Físico (envío nacional Colombia sujeto a inventario verificado).</div>
         </div>
 
-        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; padding-top: 14px; border-top: 1px solid var(--border)">
+        <p style="margin: 0 0 5px; font-size: 13px; color: var(--ink-secondary)">
+          <strong>Desarrollador / Editor:</strong> ${escapeHtml(game.developer)} / ${escapeHtml(game.publisher)}
+        </p>
+        <p style="margin: 0 0 5px; font-size: 13px; color: var(--ink-secondary)">
+          <strong>Plataformas:</strong> ${escapeHtml(game.platforms.join(', '))}
+        </p>
+        <p style="margin: 0 0 12px; font-size: 13px; color: var(--ink-secondary)">
+          <strong>Modos e idiomas:</strong> ${escapeHtml(game.gameModes.join(', '))} · ${escapeHtml(game.players)} · ${escapeHtml(game.languages)}
+        </p>
+
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; border-top: 1px solid var(--border)">
           <div class="price-block">
             <span class="price-current" style="font-size: 20px">${formatPrice(game.priceUSD)}</span>
             ${game.originalPriceUSD ? `<span class="price-old">${formatPrice(game.originalPriceUSD)} (-${game.discount}%)</span>` : ''}
           </div>
 
-          <div style="display: flex; flex-wrap: wrap; gap: 8px">
-            <button type="button" class="btn btn-secondary btn-sm" id="btnDetailTrailer">▶ Tráiler</button>
+          <div style="display: flex; flex-wrap: wrap; gap: 7px">
+            ${trailerActionHtml}
+            <button type="button" class="btn btn-secondary btn-sm" id="btnDetailShare">Compartir</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnDetailInquiry">Consultar stock</button>
             <button type="button" class="btn btn-secondary btn-sm" id="btnDetailWishlist">
               ${isWishlisted ? '♥ Guardado' : '♡ Favorito'}
             </button>
@@ -840,8 +1078,42 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
             </button>
           </div>
         </div>
+
+        <div class="detail-sources">
+          <span>Fuentes verificadas:</span>
+          ${game.sources
+            .map(
+              (s) =>
+                `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="link-btn" style="font-size: 12px">${escapeHtml(s.name)} ↗</a>`
+            )
+            .join('')}
+          <span>· Actualizado: ${escapeHtml(game.lastUpdated)}</span>
+        </div>
       </div>
     </div>
+
+    ${
+      related.length
+        ? `
+      <div class="detail-related">
+        <h3>Juegos similares y de la misma franquicia</h3>
+        <div class="related-grid">
+          ${related
+            .map(
+              (rel) => `
+            <button type="button" class="related-card" data-open-detail="${escapeHtml(rel.id)}">
+              <img src="${escapeHtml(rel.cover)}" alt="${escapeHtml(rel.title)}" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(rel.fallbackCover)}'" />
+              <strong>${escapeHtml(rel.title)}</strong>
+              <span>${rel.year} · Nota ${rel.score} · ${formatPrice(rel.priceUSD)}</span>
+            </button>
+          `
+            )
+            .join('')}
+        </div>
+      </div>
+    `
+        : ''
+    }
   `;
 
   const stage = document.getElementById('inspectorCaseStage');
@@ -850,9 +1122,9 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
 
   const syncInspectorButtons = () => {
     const isOpen = stage.classList.contains('is-open');
-    const isFront = stage.classList.contains('is-front-pinned');
+    const isBack = stage.classList.contains('is-back-pinned');
     const isDisc = stage.classList.contains('is-disc-extracted');
-    const activeMode = isDisc ? 'disc' : isOpen ? 'open' : isFront ? 'front' : 'back';
+    const activeMode = isDisc ? 'disc' : isOpen ? 'open' : isBack ? 'back' : 'front';
     spinBtn.hidden = !isDisc;
     content.querySelectorAll('[data-insp-mode]').forEach((b) => {
       b.classList.toggle('btn-primary', b.dataset.inspMode === activeMode);
@@ -870,7 +1142,7 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
       syncInspectorButtons();
       return;
     }
-    const next = stage.classList.contains('is-open') ? 'back' : 'open';
+    const next = stage.classList.contains('is-open') ? 'front' : 'open';
     setAuroraCaseState(stage, next);
     syncInspectorButtons();
   });
@@ -878,11 +1150,8 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
   content.querySelectorAll('[data-insp-mode]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const m = btn.dataset.inspMode;
-      if (m === 'disc') {
-        toggleAuroraDisc(stage);
-      } else {
-        setAuroraCaseState(stage, m);
-      }
+      if (m === 'disc') toggleAuroraDisc(stage);
+      else setAuroraCaseState(stage, m);
       syncInspectorButtons();
     });
   });
@@ -894,22 +1163,40 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
   });
 
   let trailerVisible = false;
-  document.getElementById('btnDetailTrailer').addEventListener('click', (e) => {
+  document.getElementById('btnDetailTrailer')?.addEventListener('click', (e) => {
     const slot = document.getElementById('detailTrailerSlot');
     trailerVisible = !trailerVisible;
     if (trailerVisible) {
       slot.hidden = false;
       slot.innerHTML = `
         <div class="detail-video-box">
-          <iframe src="https://www.youtube-nocookie.com/embed/${game.youtubeId}?autoplay=1&rel=0" title="Tráiler oficial de ${escapeHtml(game.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          <iframe src="https://www.youtube-nocookie.com/embed/${game.trailerId}?autoplay=1&rel=0" title="Tráiler oficial de ${escapeHtml(game.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
       `;
       e.currentTarget.textContent = 'Ocultar tráiler';
     } else {
       slot.hidden = true;
       slot.innerHTML = '';
-      e.currentTarget.textContent = '▶ Tráiler';
+      e.currentTarget.textContent = '▶ Tráiler oficial';
     }
+  });
+
+  document.getElementById('btnDetailShare').addEventListener('click', () => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}#/juego/${encodeURIComponent(game.slug || game.id)}`;
+    navigator.clipboard?.writeText(shareUrl).catch(() => {});
+    showToast(`Enlace copiado: ${game.title}`);
+  });
+
+  document.getElementById('btnDetailInquiry').addEventListener('click', () => {
+    closeModal('gameModal');
+    const msg = document.getElementById('contactMessage');
+    const topic = document.getElementById('contactTopic');
+    if (topic) topic.value = 'Preventas y cajas físicas coleccionistas';
+    if (msg) {
+      msg.value = `Hola, deseo consultar disponibilidad comercial y precio actualizado para "${game.title}" (${game.platforms.slice(0, 3).join(', ')}).`;
+    }
+    document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' });
+    showToast(`Consulta preparada para ${game.title}.`);
   });
 
   document.getElementById('btnDetailWishlist').addEventListener('click', (e) => {
@@ -924,6 +1211,18 @@ function openGameDetail(gameId, { mode = 'front' } = {}) {
   });
 
   openModal('gameModal');
+}
+
+function handleHashRoute() {
+  const hash = window.location.hash || '';
+  if (hash.startsWith('#/juego/')) {
+    const slug = decodeURIComponent(hash.replace('#/juego/', '').trim());
+    if (slug && findGameById(slug)) {
+      openGameDetail(slug, { mode: 'front', pushRoute: false });
+    }
+  } else if (document.getElementById('gameModal')?.classList.contains('open')) {
+    closeModal('gameModal', { updateHash: false });
+  }
 }
 
 /* ==========================================================================
@@ -946,7 +1245,7 @@ function renderPrefsModalOptions() {
     )
     .join('');
 
-  document.getElementById('prefGenres').innerHTML = GENRES.map(
+  document.getElementById('prefGenres').innerHTML = CATALOG_GENRES.map(
     (g) => `
       <button type="button" class="chip ${draftPrefs.genres.includes(g) ? 'active' : ''}" data-pref-genre="${g}">
         ${g}
@@ -954,7 +1253,7 @@ function renderPrefsModalOptions() {
     `
   ).join('');
 
-  document.getElementById('prefPlatforms').innerHTML = PLATFORMS.map(
+  document.getElementById('prefPlatforms').innerHTML = CATALOG_PLATFORMS.map(
     (p) => `
       <button type="button" class="chip ${draftPrefs.platforms.includes(p) ? 'active' : ''}" data-pref-platform="${p}">
         ${p}
@@ -988,6 +1287,8 @@ function applyTastePreset(presetId) {
       platforms: [...preset.platforms],
       budget: preset.budget
     };
+    filterState.sort = 'recommended';
+    document.getElementById('sortSelect').value = 'recommended';
     setActiveSection('parati');
     showToast(`Catálogo adaptado: ${preset.label}`);
   }
@@ -1065,7 +1366,7 @@ function toggleEmailAuthMode() {
 }
 
 function toggleWishlist(gameId) {
-  const game = GAMES.find((g) => g.id === gameId);
+  const game = findGameById(gameId);
   if (!game) return;
   const idx = state.wishlist.indexOf(gameId);
   if (idx >= 0) {
@@ -1081,7 +1382,7 @@ function toggleWishlist(gameId) {
 }
 
 function addToCart(gameId) {
-  const game = GAMES.find((g) => g.id === gameId);
+  const game = findGameById(gameId);
   if (!game) return;
   const existing = state.cart.find((c) => c.id === gameId);
   if (existing) existing.qty += 1;
@@ -1119,7 +1420,7 @@ function renderCartDrawer() {
       <div style="text-align: center; padding: 48px 12px">
         <p style="font-size: 16px; font-weight: 700; margin: 0 0 8px">Tu carrito está vacío</p>
         <p style="font-size: 13.5px; color: var(--ink-secondary); margin: 0 0 18px">
-          Añade cualquier videojuego desde la vitrina Aurora 3D o el catálogo para generar tus claves al instante.
+          Explora los 500 videojuegos verificados y arma tu pedido o lista de consulta.
         </p>
         <button type="button" class="btn btn-primary btn-sm" id="btnCartExplore">Ir al catálogo</button>
       </div>
@@ -1135,7 +1436,7 @@ function renderCartDrawer() {
   let subtotalUSD = 0;
   body.innerHTML = state.cart
     .map((entry) => {
-      const game = GAMES.find((g) => g.id === entry.id);
+      const game = findGameById(entry.id);
       if (!game) return '';
       subtotalUSD += game.priceUSD * entry.qty;
       return `
@@ -1143,7 +1444,7 @@ function renderCartDrawer() {
           <img src="${game.cover}" alt="${escapeHtml(game.title)}" onerror="this.onerror=null;this.src='${game.fallbackCover}'" />
           <div>
             <h4>${escapeHtml(game.title)}</h4>
-            <div class="cart-item-meta">${escapeHtml(game.edition)}</div>
+            <div class="cart-item-meta">${escapeHtml(game.format)} · ${escapeHtml(game.edition)}</div>
             <div class="qty-control">
               <button type="button" data-cart-qty="${game.id}" data-delta="-1" aria-label="Disminuir cantidad">−</button>
               <span>${entry.qty}</span>
@@ -1168,14 +1469,17 @@ function renderCartDrawer() {
       <input type="text" id="promoInput" class="input" placeholder="Cupón (SENA2026 o KRONO15)" value="${state.promoCode || ''}" style="height: 36px; text-transform: uppercase" />
       <button type="button" id="btnApplyPromo" class="btn btn-secondary btn-sm" style="height: 36px">Aplicar</button>
     </div>
-    <div class="summary-row"><span>Subtotal</span><span>${formatPrice(subtotalUSD)}</span></div>
+    <div class="summary-row"><span>Subtotal referencial</span><span>${formatPrice(subtotalUSD)}</span></div>
     ${
       promo
         ? `<div class="summary-row" style="color: var(--success)"><span>Cupón ${state.promoCode} (-${promo.percent}%)</span><span>−${formatPrice(discountUSD)}</span></div>`
         : ''
     }
-    <div class="summary-row total"><span>Total a pagar</span><span>${formatPrice(totalUSD)}</span></div>
-    <button type="button" id="btnCheckout" class="btn btn-primary btn-full" style="margin-top: 12px">Finalizar compra digital</button>
+    <div class="summary-row total"><span>Total estimado</span><span>${formatPrice(totalUSD)}</span></div>
+    <p class="field-hint" style="margin: 6px 0 10px">
+      ${escapeHtml(KRONO_CONFIG.currency.rateSource)} (${KRONO_CONFIG.currency.rateUpdatedAt}). Pagos reales habilitados tras configurar pasarela ${escapeHtml(KRONO_CONFIG.payments.provider)} en Etapa 7.
+    </p>
+    <button type="button" id="btnCheckout" class="btn btn-primary btn-full">Registrar solicitud / pedido demo</button>
   `;
 
   document.getElementById('btnApplyPromo').addEventListener('click', () => {
@@ -1192,7 +1496,7 @@ function renderCartDrawer() {
       renderCartDrawer();
       showToast(`Cupón ${code} aplicado: ${PROMO_CODES[code].label}.`);
     } else {
-      showToast('Cupón no válido. Prueba con SENA2026 o KRONO15.');
+      showToast('Cupón no válido.');
     }
   });
 
@@ -1204,7 +1508,7 @@ function completePurchase() {
   const today = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
 
   state.cart.forEach((entry) => {
-    const game = GAMES.find((g) => g.id === entry.id);
+    const game = findGameById(entry.id);
     if (!game) return;
     for (let i = 0; i < entry.qty; i++) {
       const record = {
@@ -1228,14 +1532,10 @@ function completePurchase() {
 
   document.getElementById('cartBody').innerHTML = `
     <div style="padding: 8px 0">
-      <span class="provider-pill" style="color: var(--success); border-color: var(--success); margin-bottom: 12px">✓ Compra simulada confirmada</span>
-      <h3 style="margin: 0 0 6px; font-size: 18px">Tus claves digitales están listas</h3>
-      <p style="margin: 0 0 16px; font-size: 13.5px; color: var(--ink-secondary)">
-        ${
-          state.user
-            ? `Guardadas en la biblioteca de <strong>${escapeHtml(state.user.name)}</strong>.`
-            : 'Guardadas en tu biblioteca local.'
-        }
+      <span class="provider-pill" style="color: var(--accent); border-color: var(--accent); margin-bottom: 12px">Modo demostrativo · Sin cobro real</span>
+      <h3 style="margin: 0 0 6px; font-size: 18px">Resumen registrado</h3>
+      <p style="margin: 0 0 16px; font-size: 13px; color: var(--ink-secondary)">
+        Esta orden es demostrativa. Las compras reales y entrega de claves oficiales se activarán en la Etapa 7 con pasarela verificada y webhooks firmados.
       </p>
       ${newKeys
         .map(
@@ -1243,10 +1543,7 @@ function completePurchase() {
         <div class="digital-key-card">
           <div style="font-weight: 700; font-size: 14px">${escapeHtml(item.title)}</div>
           <div style="font-size: 12px; color: var(--ink-muted)">${escapeHtml(item.edition)} · ${item.date}</div>
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap">
-            <code class="key-code">${item.key}</code>
-            <button type="button" class="link-btn" data-copy-key="${item.key}">Copiar clave</button>
-          </div>
+          <code class="key-code">REF: ${item.key}</code>
         </div>
       `
         )
@@ -1257,7 +1554,7 @@ function completePurchase() {
   document.getElementById('cartFooter').innerHTML = `
     <button type="button" class="btn btn-primary btn-full" data-close-drawer="cartDrawer">Seguir explorando</button>
   `;
-  showToast('¡Compra completada! Claves digitales generadas.');
+  showToast('Solicitud de prueba registrada (sin cobro real).');
 }
 
 function openAccountDrawer(focusSection = 'profile') {
@@ -1281,13 +1578,13 @@ function openAccountDrawer(focusSection = 'profile') {
       <div class="digital-key-card" style="margin-bottom: 16px">
         <div style="font-weight: 700; margin-bottom: 4px">Navegando como invitado</div>
         <p style="margin: 0 0 12px; font-size: 13px; color: var(--ink-secondary)">
-          Inicia sesión con Google, Facebook, Discord, correo o teléfono para sincronizar tu colección.
+          La autenticación real con OAuth 2.0 y SMS (Supabase Auth) se integrará en la Etapa 6.
         </p>
-        <button type="button" id="btnAccountSignIn" class="btn btn-primary btn-sm btn-full">Iniciar sesión o registrarme</button>
+        <button type="button" id="btnAccountSignIn" class="btn btn-primary btn-sm btn-full">Acceder a cuenta</button>
       </div>
     `;
 
-  const wishlistGames = state.wishlist.map((id) => GAMES.find((g) => g.id === id)).filter(Boolean);
+  const wishlistGames = state.wishlist.map((id) => findGameById(id)).filter(Boolean);
   const wishlistHtml = wishlistGames.length
     ? wishlistGames
         .map(
@@ -1298,8 +1595,8 @@ function openAccountDrawer(focusSection = 'profile') {
           <h4>${escapeHtml(g.title)}</h4>
           <div class="cart-item-meta">${g.year} · ${formatPrice(g.priceUSD)}</div>
           <div style="display: flex; gap: 10px">
-            <button type="button" class="link-btn" data-add-cart="${g.id}">Al carrito</button>
-            <button type="button" class="link-btn" style="color: var(--ink-muted)" data-remove-wish="${g.id}">Quitar</button>
+            <button type="button" class="link-btn" data-open-detail="${escapeHtml(g.id)}">Ver ficha</button>
+            <button type="button" class="link-btn" style="color: var(--ink-muted)" data-remove-wish="${escapeHtml(g.id)}">Quitar</button>
           </div>
         </div>
       </div>
@@ -1315,21 +1612,18 @@ function openAccountDrawer(focusSection = 'profile') {
       <div class="digital-key-card">
         <div style="font-weight: 700; font-size: 13.5px">${escapeHtml(item.title)}</div>
         <div style="font-size: 11.5px; color: var(--ink-muted)">${item.date} · ${escapeHtml(item.edition)}</div>
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap">
-          <code class="key-code">${item.key}</code>
-          <button type="button" class="link-btn" data-copy-key="${item.key}">Copiar</button>
-        </div>
+        <code class="key-code">${item.key}</code>
       </div>
     `
         )
         .join('')
-    : `<p style="font-size: 13px; color: var(--ink-muted)">Tus claves digitales compradas aparecerán aquí.</p>`;
+    : `<p style="font-size: 13px; color: var(--ink-muted)">Tus pedidos confirmados aparecerán aquí.</p>`;
 
   body.innerHTML = `
     ${userCard}
     <h3 style="margin: 16px 0 8px; font-size: 15px">Lista de deseos (${wishlistGames.length})</h3>
     ${wishlistHtml}
-    <h3 style="margin: 22px 0 10px; font-size: 15px">Mi biblioteca digital (${state.library.length})</h3>
+    <h3 style="margin: 22px 0 10px; font-size: 15px">Historial local (${state.library.length})</h3>
     ${libraryHtml}
   `;
 
@@ -1354,6 +1648,7 @@ function openAccountDrawer(focusSection = 'profile') {
 
 function setActiveSection(section) {
   filterState.section = section;
+  visibleCount = KRONO_CONFIG.catalog.pageSize;
   document.querySelectorAll('.tab-btn[data-section]').forEach((btn) => {
     const active = btn.dataset.section === section;
     btn.classList.toggle('active', active);
@@ -1363,11 +1658,17 @@ function setActiveSection(section) {
 }
 
 function resetFilters() {
-  filterState = { section: 'todos', search: '', platform: 'all', genre: 'all', sort: 'recommended' };
+  filterState = { ...defaultFilters };
+  visibleCount = KRONO_CONFIG.catalog.pageSize;
   document.getElementById('searchInput').value = '';
   document.getElementById('platformFilter').value = 'all';
   document.getElementById('genreFilter').value = 'all';
-  document.getElementById('sortSelect').value = 'recommended';
+  document.getElementById('priceFilter').value = 'all';
+  document.getElementById('yearFilter').value = 'all';
+  document.getElementById('scoreFilter').value = 'all';
+  document.getElementById('esrbFilter').value = 'all';
+  document.getElementById('formatFilter').value = 'all';
+  document.getElementById('sortSelect').value = 'popular';
   setActiveSection('todos');
 }
 
@@ -1385,7 +1686,7 @@ function prefillContactIfLoggedIn() {
    Eventos globales
    ========================================================================== */
 function bindEvents() {
-  // Aurora CoverFlow controles + swipe móvil
+  // Aurora CoverFlow
   document.getElementById('cfPrev').addEventListener('click', () => stepCoverflow(-1));
   document.getElementById('cfNext').addEventListener('click', () => stepCoverflow(1));
 
@@ -1408,12 +1709,11 @@ function bindEvents() {
     const idx = Number(slot.dataset.cfIndex);
     if (idx !== coverflowIndex) {
       coverflowIndex = idx;
-      coverflowCaseState = 'back';
+      coverflowCaseState = 'front';
       coverflowDiscOut = false;
       updateAuroraPositions();
     } else {
-      // Clic en la caja centrada abre o cierra la caja 3D con bisagra
-      coverflowCaseState = coverflowCaseState === 'open' ? 'back' : 'open';
+      coverflowCaseState = coverflowCaseState === 'open' ? 'front' : 'open';
       if (coverflowCaseState !== 'open') coverflowDiscOut = false;
       updateAuroraPositions();
     }
@@ -1436,15 +1736,15 @@ function bindEvents() {
     { passive: true }
   );
 
-  // Botones del HUD Aurora
+  // HUD Aurora
   document.getElementById('btnHudFlip').addEventListener('click', () => {
-    coverflowCaseState = coverflowCaseState === 'front' ? 'back' : 'front';
+    coverflowCaseState = coverflowCaseState === 'back' ? 'front' : 'back';
     coverflowDiscOut = false;
     updateAuroraPositions();
   });
 
   document.getElementById('btnHudOpen').addEventListener('click', () => {
-    coverflowCaseState = coverflowCaseState === 'open' ? 'back' : 'open';
+    coverflowCaseState = coverflowCaseState === 'open' ? 'front' : 'open';
     if (coverflowCaseState !== 'open') coverflowDiscOut = false;
     updateAuroraPositions();
   });
@@ -1460,13 +1760,13 @@ function bindEvents() {
   });
 
   document.getElementById('btnHudInspect').addEventListener('click', () => {
-    openGameDetail(GAMES[coverflowIndex].id, {
-      mode: coverflowDiscOut ? 'disc' : coverflowCaseState
-    });
+    const g = featuredGames[coverflowIndex];
+    if (g) openGameDetail(g.id, { mode: coverflowDiscOut ? 'disc' : coverflowCaseState });
   });
 
   document.getElementById('btnHudCart').addEventListener('click', () => {
-    addToCart(GAMES[coverflowIndex].id);
+    const g = featuredGames[coverflowIndex];
+    if (g) addToCart(g.id);
   });
 
   // Tema y moneda
@@ -1531,26 +1831,42 @@ function bindEvents() {
     if (btn) applyTastePreset(btn.dataset.preset);
   });
 
-  // Catálogo filtros
+  // Catálogo: pestañas y filtros combinados
   document.querySelectorAll('.tab-btn[data-section]').forEach((btn) => {
     btn.addEventListener('click', () => setActiveSection(btn.dataset.section));
   });
-  document.getElementById('searchInput').addEventListener('input', (e) => {
+
+  const searchInput = document.getElementById('searchInput');
+  searchInput.addEventListener('focus', renderSearchDropdown);
+  searchInput.addEventListener('input', (e) => {
     filterState.search = e.target.value;
+    visibleCount = KRONO_CONFIG.catalog.pageSize;
+    renderSearchDropdown();
     renderCatalog();
   });
-  document.getElementById('platformFilter').addEventListener('change', (e) => {
-    filterState.platform = e.target.value;
-    renderCatalog();
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      pushSearchHistory(searchInput.value);
+      hideSearchDropdown();
+    }
   });
-  document.getElementById('genreFilter').addEventListener('change', (e) => {
-    filterState.genre = e.target.value;
-    renderCatalog();
-  });
-  document.getElementById('sortSelect').addEventListener('change', (e) => {
-    filterState.sort = e.target.value;
-    renderCatalog();
-  });
+
+  const bindSelect = (id, key) => {
+    document.getElementById(id)?.addEventListener('change', (e) => {
+      filterState[key] = e.target.value;
+      visibleCount = KRONO_CONFIG.catalog.pageSize;
+      renderCatalog();
+    });
+  };
+  bindSelect('platformFilter', 'platform');
+  bindSelect('genreFilter', 'genre');
+  bindSelect('priceFilter', 'priceRange');
+  bindSelect('yearFilter', 'yearRange');
+  bindSelect('scoreFilter', 'minScore');
+  bindSelect('esrbFilter', 'esrb');
+  bindSelect('formatFilter', 'format');
+  bindSelect('sortSelect', 'sort');
+
   document.getElementById('btnResetFilters').addEventListener('click', resetFilters);
 
   // Noticias filtros
@@ -1564,18 +1880,58 @@ function bindEvents() {
     renderNews();
   });
 
-  // Delegación global
+  // Delegación global de clicks
   document.addEventListener('click', (e) => {
+    // Cerrar dropdown de búsqueda si se hace clic fuera
+    if (!e.target.closest('#searchContainer')) {
+      hideSearchDropdown();
+    }
+
+    // Sugerencias de búsqueda e historial
+    const suggestGame = e.target.closest('[data-suggest-game]');
+    if (suggestGame) {
+      const g = findGameById(suggestGame.dataset.suggestGame);
+      if (g) pushSearchHistory(g.title);
+      hideSearchDropdown();
+      openGameDetail(suggestGame.dataset.suggestGame, { mode: 'front' });
+      return;
+    }
+
+    const suggestQuery = e.target.closest('[data-suggest-query]');
+    if (suggestQuery) {
+      const q = suggestQuery.dataset.suggestQuery;
+      searchInput.value = q;
+      filterState.search = q;
+      visibleCount = KRONO_CONFIG.catalog.pageSize;
+      pushSearchHistory(q);
+      hideSearchDropdown();
+      renderCatalog();
+      return;
+    }
+
+    if (e.target.id === 'btnClearHistory') {
+      clearSearchHistory();
+      hideSearchDropdown();
+      showToast('Historial de búsqueda limpiado.');
+      return;
+    }
+
+    // Chips removibles de filtros activos
+    const removeChip = e.target.closest('[data-remove-filter]');
+    if (removeChip) {
+      removeSingleFilter(removeChip.dataset.removeFilter);
+      return;
+    }
+
     // 1. Clic en disco interior de una caja del catálogo
     const cardDiscBtn = e.target.closest('#gamesGrid [data-toggle-disc]');
     if (cardDiscBtn) {
       e.stopPropagation();
-      const caseEl = cardDiscBtn.closest('.aurora-case');
-      toggleAuroraDisc(caseEl);
+      toggleAuroraDisc(cardDiscBtn.closest('.aurora-case'));
       return;
     }
 
-    // 2. Botón táctil Portada / Reverso en tarjeta de catálogo
+    // 2. Botón táctil Reverso / Portada en tarjeta de catálogo
     const flipCardBtn = e.target.closest('[data-flip-card]');
     if (flipCardBtn) {
       e.stopPropagation();
@@ -1584,10 +1940,10 @@ function bindEvents() {
       const caseEl = card?.querySelector('.aurora-case');
       const openBtn = card?.querySelector('[data-open-case-card]');
       if (caseEl) {
-        const next = caseEl.dataset.caseState === 'front' ? 'back' : 'front';
+        const next = caseEl.dataset.caseState === 'back' ? 'front' : 'back';
         setAuroraCaseState(caseEl, next);
         box?.classList.remove('has-open-case');
-        flipCardBtn.textContent = next === 'front' ? '↺ Reverso' : '↺ Portada';
+        flipCardBtn.textContent = next === 'back' ? '↺ Portada' : '↺ Reverso';
         if (openBtn) openBtn.textContent = '◉ Abrir caja';
       }
       return;
@@ -1603,15 +1959,15 @@ function bindEvents() {
       const flipBtn = card?.querySelector('[data-flip-card]');
       if (caseEl) {
         const opening = !caseEl.classList.contains('is-open');
-        setAuroraCaseState(caseEl, opening ? 'open' : 'back');
+        setAuroraCaseState(caseEl, opening ? 'open' : 'front');
         box?.classList.toggle('has-open-case', opening);
         openCaseCardBtn.textContent = opening ? '✕ Cerrar' : '◉ Abrir caja';
-        if (flipBtn) flipBtn.textContent = '↺ Portada';
+        if (flipBtn) flipBtn.textContent = '↺ Reverso';
       }
       return;
     }
 
-    // 4. Clic directo sobre la caja 3D en el catálogo: abre/cierra la caja con bisagra
+    // 4. Clic directo sobre la caja 3D en el catálogo: abre/cierra con bisagra
     const cardCaseTrigger = e.target.closest('[data-card-case-trigger]');
     if (cardCaseTrigger) {
       const card = cardCaseTrigger.closest('.game-card');
@@ -1621,10 +1977,10 @@ function bindEvents() {
       const flipBtn = card?.querySelector('[data-flip-card]');
       if (caseEl) {
         const opening = !caseEl.classList.contains('is-open');
-        setAuroraCaseState(caseEl, opening ? 'open' : 'back');
+        setAuroraCaseState(caseEl, opening ? 'open' : 'front');
         box?.classList.toggle('has-open-case', opening);
         if (openBtn) openBtn.textContent = opening ? '✕ Cerrar' : '◉ Abrir caja';
-        if (flipBtn) flipBtn.textContent = '↺ Portada';
+        if (flipBtn) flipBtn.textContent = '↺ Reverso';
       }
       return;
     }
@@ -1645,7 +2001,8 @@ function bindEvents() {
 
     const detailBtn = e.target.closest('[data-open-detail]');
     if (detailBtn) {
-      openGameDetail(detailBtn.dataset.openDetail, { mode: 'back' });
+      closeDrawer('accountDrawer');
+      openGameDetail(detailBtn.dataset.openDetail, { mode: 'front' });
       return;
     }
 
@@ -1679,7 +2036,7 @@ function bindEvents() {
     const copyBtn = e.target.closest('[data-copy-key]');
     if (copyBtn) {
       navigator.clipboard?.writeText(copyBtn.dataset.copyKey).catch(() => {});
-      showToast(`Clave copiada: ${copyBtn.dataset.copyKey}`);
+      showToast(`Referencia copiada: ${copyBtn.dataset.copyKey}`);
       return;
     }
 
@@ -1734,6 +2091,8 @@ function bindEvents() {
     state.prefs = clonePrefs(draftPrefs);
     saveState();
     renderPersonalizeRibbon();
+    filterState.sort = 'recommended';
+    document.getElementById('sortSelect').value = 'recommended';
     setActiveSection(hasCustomPrefs() ? 'parati' : 'todos');
     closeModal('prefsModal');
     showToast('Preferencias aplicadas a tu catálogo.');
@@ -1861,20 +2220,23 @@ function bindEvents() {
     const ticket = `KRN-${Math.floor(1000 + Math.random() * 9000)}`;
     feedback.classList.add('success');
     feedback.innerHTML = `
-      <strong>¡Mensaje recibido con éxito! (Radicado #${ticket})</strong><br />
-      Gracias, ${escapeHtml(name)}. Registramos tu solicitud sobre <em>${escapeHtml(topic)}</em> y responderemos a <strong>${escapeHtml(email)}</strong>.
+      <strong>¡Solicitud recibida! (Referencia #${ticket})</strong><br />
+      Gracias, ${escapeHtml(name)}. Registramos tu mensaje sobre <em>${escapeHtml(topic)}</em> para responder a <strong>${escapeHtml(email)}</strong>.
     `;
     e.target.reset();
     prefillContactIfLoggedIn();
     showToast(`Solicitud enviada (#${ticket}).`);
   });
 
-  // Teclado: flechas para Aurora CoverFlow, "/" para buscar, Escape para cerrar
+  // Navegación por hash (#/juego/<slug>) y teclado
+  window.addEventListener('hashchange', handleHashRoute);
+
   document.addEventListener('keydown', (e) => {
     const inField = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
     const modalOpen = document.querySelector('.modal-backdrop.open, .drawer-backdrop.open');
 
     if (e.key === 'Escape') {
+      hideSearchDropdown();
       closeModal('authModal');
       closeModal('prefsModal');
       closeModal('gameModal');
@@ -1884,7 +2246,7 @@ function bindEvents() {
       closeMobileMenu();
     } else if (!inField && !modalOpen && e.key === '/') {
       e.preventDefault();
-      document.getElementById('searchInput').focus();
+      searchInput.focus();
     } else if (!inField && !modalOpen && e.key === 'ArrowRight') {
       stepCoverflow(1);
     } else if (!inField && !modalOpen && e.key === 'ArrowLeft') {
@@ -1893,18 +2255,27 @@ function bindEvents() {
   });
 }
 
-function init() {
+async function init() {
   applyTheme();
   syncCurrencyButtons();
   updateHeaderUI();
-  updateTabCounts();
-  renderAuroraCoverflow();
   renderPersonalizeRibbon();
-  renderCatalog();
   renderNews();
-  renderTrailers();
   prefillContactIfLoggedIn();
   bindEvents();
+
+  // Carga asíncrona del catálogo verificado de 500 videojuegos
+  const loaded = await loadCatalog();
+  catalogGames = loaded.games;
+  catalogMeta = loaded.meta;
+  featuredGames = catalogGames.filter((g) => g.featured).slice(0, 12);
+  if (featuredGames.length < 8) featuredGames = catalogGames.slice(0, 12);
+
+  updateTabCounts();
+  renderAuroraCoverflow();
+  renderCatalog();
+  renderTrailers();
+  handleHashRoute();
 }
 
 init();

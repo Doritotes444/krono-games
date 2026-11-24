@@ -114,15 +114,15 @@
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  /* REPOSO POR DEFECTO: CONTRAPORTADA */
-  transform: rotateY(180deg);
+  /* REPOSO NORMAL: PORTADA FRONTAL OFICIAL */
+  transform: rotateY(0deg);
   transition: transform 0.72s var(--ease);
 }
 
-/* HOVER EN ESCRITORIO: GIRA A PORTADA FRONTAL */
+/* HOVER EN ESCRITORIO: GIRA SUAVEMENTE A LA CONTRAPORTADA (PARTE TRASERA) */
 @media (hover: hover) and (pointer: fine) {
   .aurora-case:hover:not(.is-open) .aurora-case__body {
-    transform: rotateY(0deg) translateY(-4px);
+    transform: rotateY(180deg) translateY(-4px);
   }
 
   .aurora-case:hover:not(.is-open) .aurora-case__shadow {
@@ -131,9 +131,9 @@
   }
 }
 
-/* PORTADA FIJADA (móvil / botones explícitos / CoverFlow enfocado) */
-.aurora-case.is-front-pinned:not(.is-open) .aurora-case__body {
-  transform: rotateY(0deg);
+/* CONTRAPORTADA FIJADA (móvil / botón explícito) */
+.aurora-case.is-back-pinned:not(.is-open) .aurora-case__body {
+  transform: rotateY(180deg);
 }
 
 /* CLIC: APERTURA 3D CON BISAGRA IZQUIERDA */
@@ -521,5 +521,260 @@
   .aurora-case.is-disc-extracted .tray-disc,
   .inspector-case-wrap .aurora-case.is-disc-extracted .tray-disc {
     transform: translate(18%, -8%) translateZ(36px) scale(1.02);
+  }
+}
+
+/* ==========================================================================
+   ETAPA 4: BUSCADOR CON AUTOCOMPLETADO, FILTROS AVANZADOS, CHIPS Y PAGINACIÓN
+   ========================================================================== */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 45;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.search-dropdown__header {
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.search-dropdown__item {
+  width: 100%;
+  padding: 10px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.15s ease;
+}
+
+.search-dropdown__item:last-child {
+  border-bottom: 0;
+}
+
+.search-dropdown__item:hover {
+  background: var(--surface-subtle);
+}
+
+.search-dropdown__meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* Fila secundaria de filtros avanzados (Precio, Año, Nota, ESRB, Formato) */
+.filter-bar-advanced {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+/* Chips removibles de filtros activos */
+.active-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.active-filter-chips:empty {
+  display: none;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.filter-chip button {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.filter-chip button:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Paginación progresiva */
+.catalog-pagination {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.catalog-pagination__status {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.catalog-pagination__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.catalog-loading {
+  grid-column: 1 / -1;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--ink-secondary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* Ficha individual enriquecida: galería, fuentes, disponibilidad y relacionados */
+.detail-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.detail-gallery img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+}
+
+.detail-availability-box {
+  padding: 11px 14px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  margin: 12px 0 14px;
+  font-size: 12.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-sources {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.detail-related {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.detail-related h3 {
+  margin: 0 0 12px;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.related-card {
+  text-align: left;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.related-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.related-card img {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 5px;
+}
+
+.related-card strong {
+  font-size: 12px;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.related-card span {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-muted);
+}
+
+@media (max-width: 900px) {
+  .filter-bar-advanced {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .related-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .filter-bar-advanced {
+    grid-template-columns: 1fr;
   }
 }

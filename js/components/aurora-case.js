@@ -29,13 +29,13 @@ export function renderAuroraCase(
   game,
   {
     idAttr = '',
-    initialState = 'back', // 'back' | 'front' | 'open'
+    initialState = 'front', // 'front' | 'back' | 'open'
     discExtracted = false,
     lazy = true,
     compact = false
   } = {}
 ) {
-  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.xbox;
+  const theme = CASE_THEMES[game.caseTheme] || CASE_THEMES.pc;
   const shots =
     game.screenshots && game.screenshots.length >= 2
       ? game.screenshots
@@ -53,7 +53,7 @@ export function renderAuroraCase(
     'aurora-case',
     compact ? 'aurora-case--compact' : '',
     initialState === 'open' ? 'is-open' : '',
-    initialState === 'front' ? 'is-front-pinned' : '',
+    initialState === 'back' ? 'is-back-pinned' : '',
     discExtracted ? 'is-disc-extracted' : ''
   ]
     .filter(Boolean)
@@ -202,7 +202,7 @@ export function setAuroraCaseState(caseEl, nextState) {
   if (!caseEl) return;
   caseEl.dataset.caseState = nextState;
   caseEl.classList.toggle('is-open', nextState === 'open');
-  caseEl.classList.toggle('is-front-pinned', nextState === 'front');
+  caseEl.classList.toggle('is-back-pinned', nextState === 'back');
   if (nextState !== 'open') {
     caseEl.classList.remove('is-disc-extracted');
     syncDiscButtonMeta(caseEl, false);
