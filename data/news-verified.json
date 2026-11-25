@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastSyncedAt": "2026-11-25T07:15:03Z",
+    "lastSyncedAt": "2026-11-25T21:08:47Z",
     "verifiedDate": "2026-11-25",
     "totalArticles": 12,
     "feeds": [
@@ -41,39 +41,99 @@
   },
   "articles": [
     {
-      "id": "news-the-witch-life-sim-witchbrook-has-officially-gon",
-      "title": "The Witch Life-Sim Witchbrook Has Officially \"Gone Gold\"",
-      "summary": "\"We can't wait for you all to join us\". During the Indie World Showcase in October, it was confirmed the witch-themed life-sim and social RPG Witchbrook would be coming to the Switch 1 & 2 on 28th January 2027 . In...",
-      "image": "https://images.nintendolife.com/e93f6b39e566d/small.jpg",
+      "id": "news-playstation-plus-monthly-games-for-december-tony",
+      "title": "PlayStation Plus Monthly Games for December: Tony Hawk’s Pro Skater 3+4, Dragon Ball Xenoverse 2, Amnesia: The Bunker",
+      "summary": "Shred rails, fight icons and flee horrors beyond your understanding with the PlayStation Plus Monthly Games for December. Tony Hawk’s Pro Skater 3+4, Dragon Ball Xenoverse 2, and Amnesia: The Bunker will be available...",
+      "image": "https://blog.playstation.com/tachyon/2026/11/393a7151bd4ebdcfaec45d08f6598f81ccc842af-scaled.jpg?fit=1024%2C1024",
+      "publishedAt": "2026-11-25",
+      "verifiedAt": "2026-11-25",
+      "sourceName": "PlayStation.Blog Oficial",
+      "sourceUrl": "https://blog.playstation.com/2026/11/25/playstation-plus-monthly-games-for-december-tony-hawks-pro-skater-34-dragon-ball-xenoverse-2-amnesia-the-bunker/",
+      "category": "Anuncios oficiales",
+      "verificationType": "Oficial"
+    },
+    {
+      "id": "news-achievement-unlocked-an-interview-with-the-first",
+      "title": "Achievement Unlocked: An Interview with the First XBOX Player to Reach 10 Million Gamerscore",
+      "summary": "On September 9, 2026, at 3:35pm Pacific Time, SiegfriedX unlocked a 110-point XBOX Achievement that pushed his Gamerscore to a historic 10 million. With that, he became the first XBOX player in the world to reach the...",
+      "image": "https://xboxwire.thesourcemediaassets.com/sites/2/2026/11/Siegfried_XBOX_Playback-a1988d1fe0b378c4073e-357x683.png",
+      "publishedAt": "2026-11-25",
+      "verifiedAt": "2026-11-25",
+      "sourceName": "Xbox Wire Oficial",
+      "sourceUrl": "https://news.xbox.com/en-us/2026/11/25/achievements-10-million-gamerscore-interview/",
+      "category": "Consolas y plataformas",
+      "verificationType": "Oficial"
+    },
+    {
+      "id": "news-final-fantasy-resonance-devs-are-somehow-surpris",
+      "title": "Final Fantasy Resonance Devs Are Somehow Surprised That Fans Still Like Turn-Based Combat",
+      "summary": "\"I expected opinions on it might be divided\". Final Fantasy Resonance was met with high praise when it launched on 22nd October 2026, earning a score of 8/10 from us and a critic average of 85 over on Metacritic ....",
+      "image": "https://images.nintendolife.com/71db75b8e23ea/small.jpg",
       "publishedAt": "2026-11-25",
       "verifiedAt": "2026-11-25",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/the-witch-life-sim-witchbrook-has-officially-gone-gold",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/final-fantasy-resonance-devs-are-somehow-surprised-that-fans-still-like-turn-based-combat",
       "category": "Consolas y plataformas",
       "verificationType": "Medio especializado"
     },
     {
-      "id": "news-pok-mon-champions-is-adding-four-more-mega-evolu",
-      "title": "Pokémon Champions Is Adding Four More Mega Evolutions In A New Update Next Week",
-      "summary": "24 newly added Pokémon will also be available for battle. Following the news of a Pokémon Champions balance patch update, The Pokémon Company has now revealed some new competitors are preparing to arrive in the...",
-      "image": "https://images.nintendolife.com/b958d377b2307/small.jpg",
+      "id": "news-star-trek-voyager-across-the-unknown-final-dlc-v",
+      "title": "Star Trek: Voyager - Across The Unknown Final DLC Ventures To Switch 2 Next Month",
+      "summary": "The Year of Hell is right around the corner. Daedalic Entertainment and GameXcite are wrapping up the bonus content for Star Trek: Voyager - Across The Unknown with one final wave of DLC. The 'Year of Hell' expansion...",
+      "image": "https://images.nintendolife.com/74626a9bf4381/small.jpg",
       "publishedAt": "2026-11-25",
       "verifiedAt": "2026-11-25",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/pokemon-champions-is-adding-four-more-mega-evolutions-in-a-new-update-next-week",
-      "category": "Actualizaciones",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/star-trek-voyager-across-the-unknown-final-dlc-ventures-to-switch-2-next-month",
+      "category": "DLC y expansiones",
       "verificationType": "Medio especializado"
     },
     {
-      "id": "news-we-saw-your-hopeful-requests-fabraz-announces-de",
-      "title": "\"We Saw Your Hopeful Requests\" - Fabraz Announces Demon Tides Switch 2 Release",
-      "summary": "Launching January 2027 alongside the Switch version. Critically-acclaimed developer Fabraz has announced it will be releasing its 3D platformer Demon Tides for the Switch on 21st January 2027 . As part of this news,...",
-      "image": "https://images.nintendolife.com/85889bf419e4b/small.jpg",
+      "id": "news-hollow-knight-silksong-dlc-news-is-coming-this-w",
+      "title": "Hollow Knight: Silksong DLC News Is Coming This Week In A Team Cherry 'Special Presentation'",
+      "summary": "DLSEA of Sorrow. What's that? Silksong news? You're damn right it is! Team Cherry has announced that it'll be hosting a 'Cherry Time!' special presentation this week on 27th November at 3pm GMT / 7am PT / 10am ET ,...",
+      "image": "https://images.nintendolife.com/5e8ad7f83348f/small.jpg",
       "publishedAt": "2026-11-25",
       "verifiedAt": "2026-11-25",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/we-saw-your-hopeful-requests-fabraz-announces-demon-tides-switch-2-release",
-      "category": "Consolas y plataformas",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/hollow-knight-silksong-dlc-news-is-coming-this-week-in-a-team-cherry-special-presentation",
+      "category": "DLC y expansiones",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-three-years-after-his-death-ea-is-using-ai-to-br",
+      "title": "Three Years After His Death, EA Is Using AI To Bring Back A Famed Commentator In FC 27",
+      "summary": "EA Sports FC 27 is adding an AI-generated commentator for the first time in the series' history, with famed British commentator John Motson having his voice synthesized for the football title. Motson, who passed way...",
+      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/ea-sports-fc-26.jpg?w=300",
+      "publishedAt": "2026-11-25",
+      "verifiedAt": "2026-11-25",
+      "sourceName": "GameSpot",
+      "sourceUrl": "https://www.gamespot.com/articles/three-years-after-his-death-ea-is-using-ai-to-bring-back-a-famed-commentator-in-fc-27/",
+      "category": "Últimas noticias",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-diablo-4-s-most-nostalgic-season-is-becoming-mos",
+      "title": "Diablo 4’s Most Nostalgic Season Is Becoming (Mostly) Permanent",
+      "summary": "Diablo 4 is gearing up for the arrival of Season 16, but it won't be leaving its popular previous season behind entirely. As detailed by Blizzard in a breakdown of the upcoming Season of Tyrael's Gambit, much of the...",
+      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/Diablo-4-Hells-Legacy-Season-Becoming-Permanent.jpg?w=300",
+      "publishedAt": "2026-11-25",
+      "verifiedAt": "2026-11-25",
+      "sourceName": "GameSpot",
+      "sourceUrl": "https://www.gamespot.com/articles/diablo-4s-most-nostalgic-season-is-becoming-mostly-permanent/",
+      "category": "Últimas noticias",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-another-live-service-game-is-going-extinct-and-t",
+      "title": "Another Live-Service Game Is Going Extinct, And This One Has Dinosaurs",
+      "summary": "Capcom has had a big year, but amid the hits comes news that its Overwatch-with-dinosaurs game, Exoprimal, will join the live-service graveyard next year. The game's servers will go offline next year, making it...",
+      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/Exoprimal.jpg?w=300",
+      "publishedAt": "2026-11-25",
+      "verifiedAt": "2026-11-25",
+      "sourceName": "GameSpot",
+      "sourceUrl": "https://www.gamespot.com/articles/another-live-service-game-is-going-extinct-and-this-one-has-dinosaurs/",
+      "category": "Últimas noticias",
       "verificationType": "Medio especializado"
     },
     {
@@ -101,54 +161,6 @@
       "verificationType": "Oficial"
     },
     {
-      "id": "news-dead-by-daylight-terrifier-s-new-killer-is-no-la",
-      "title": "Dead by Daylight: Terrifier’s New Killer is No Laughing Matter",
-      "summary": "Hope you’re not afraid of clowns. Putting the laughter in slaughter, The Terrifier steps into Dead by Daylight as the hit horror multiplayer’s latest Killer. A serial murderer fueled by a sick sense of humor, Art the...",
-      "image": "https://xboxwire.thesourcemediaassets.com/sites/2/2026/11/DBD_CH_CERT_PRSCREEN_03_WEB-0ec21cc7b7ac90e90454-1024x576.jpg",
-      "publishedAt": "2026-11-24",
-      "verifiedAt": "2026-11-25",
-      "sourceName": "Xbox Wire Oficial",
-      "sourceUrl": "https://news.xbox.com/en-us/2026/11/24/dead-by-daylight-terrifiers-new-killer-is-no-laughing-matter/",
-      "category": "Consolas y plataformas",
-      "verificationType": "Oficial"
-    },
-    {
-      "id": "news-call-of-duty-s-19-year-sales-streak-continues",
-      "title": "Call Of Duty’s 19-Year Sales Streak Continues",
-      "summary": "Circana has released its latest monthly sales report for the US video game industry, and in terms of game sales, Call of Duty: Modern Warfare 4 led the way. It was the No. 1 best-selling game of October 2026, and...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/MW4ImageNew.jpg?w=300",
-      "publishedAt": "2026-11-24",
-      "verifiedAt": "2026-11-25",
-      "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/call-of-dutys-19-year-sales-streak-continues/",
-      "category": "Ofertas verificadas",
-      "verificationType": "Medio especializado"
-    },
-    {
-      "id": "news-just-like-gta-6-the-witcher-4-has-a-playstation-",
-      "title": "Just Like GTA 6, The Witcher 4 Has A PlayStation Deal",
-      "summary": "CD Projekt Red has announced that just today, November 24, the Polish studio signed new deals with Sony Interactive Entertainment for The Witcher 4 's upcoming marketing campaign, among other efforts. CFO Piotr...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/WitcherCiri.png?w=300",
-      "publishedAt": "2026-11-24",
-      "verifiedAt": "2026-11-25",
-      "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/just-like-gta-6-the-witcher-4-has-a-playstation-deal/",
-      "category": "Ofertas verificadas",
-      "verificationType": "Medio especializado"
-    },
-    {
-      "id": "news-switch-2-s-black-friday-bundle-with-mario-kart-w",
-      "title": "Switch 2’s Black Friday Bundle With Mario Kart World Is Available Now For $500",
-      "summary": "It's Black Friday week, and one of the best gaming deals is a Switch 2 bundle featuring Mario Kart World and other extras for $50 off the normal price. As announced previously , the $500 bundle comes with a Switch 2...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/MKWorldSwitch.png?w=300",
-      "publishedAt": "2026-11-24",
-      "verifiedAt": "2026-11-25",
-      "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/switch-2s-black-friday-bundle-with-mario-kart-world-is-available-now-for-500/",
-      "category": "Ofertas verificadas",
-      "verificationType": "Medio especializado"
-    },
-    {
       "id": "news-thank-you-for-making-grand-theft-auto-vi-the-big",
       "title": "Thank you for making Grand Theft Auto VI the biggest launch in PlayStation history",
       "summary": "After a long wait, players finally have had the chance to jump into Grand Theft Auto VI . It’s been amazing to see the PlayStation community around the world begin their adventures in the state of Leonida. Whether...",
@@ -169,18 +181,6 @@
       "verifiedAt": "2026-11-25",
       "sourceName": "PlayStation.Blog Oficial",
       "sourceUrl": "https://blog.playstation.com/2026/11/20/official-playstation-podcast-episode-553-peak-gaming/",
-      "category": "Anuncios oficiales",
-      "verificationType": "Oficial"
-    },
-    {
-      "id": "news-share-of-the-week-texture",
-      "title": "Share of the Week: Texture",
-      "summary": "Last week, we asked you to share textures from the game of your choice using #PSshare #PSBlog for a chance to be featured. Here are this week’s highlights: John_Varela_R shared a detailed look at Arjun’s necklace in...",
-      "image": "https://live.staticflickr.com/65535/55662348335_0c512efcf2_k.jpg",
-      "publishedAt": "2026-11-20",
-      "verifiedAt": "2026-11-25",
-      "sourceName": "PlayStation.Blog Oficial",
-      "sourceUrl": "https://blog.playstation.com/2026/11/20/share-of-the-week-texture/",
       "category": "Anuncios oficiales",
       "verificationType": "Oficial"
     }
