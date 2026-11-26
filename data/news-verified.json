@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastSyncedAt": "2026-11-26T07:04:03Z",
+    "lastSyncedAt": "2026-11-26T20:58:52Z",
     "verifiedDate": "2026-11-26",
     "totalArticles": 12,
     "feeds": [
@@ -41,50 +41,86 @@
   },
   "articles": [
     {
-      "id": "news-mouse-p-i-for-hire-teases-dlc-announcement-takin",
-      "title": "Mouse P.I. For Hire Teases DLC Announcement, Taking Place Next Week",
-      "summary": "The investigation continues. A lot of developers have decided to tease announcements in the lead up to certain end-of-year events and celebrations, and the latest one comes from the Mouse P.I. For Hire team. In a...",
-      "image": "https://images.nintendolife.com/9b33a6258997f/small.jpg",
+      "id": "news-free-play-days-warhammer-40-000-mechanicus-and-l",
+      "title": "Free Play Days – Warhammer 40,000: Mechanicus and Little Rocket Lab",
+      "summary": "Blast stuff and build big with Free Play Days! Warhammer 40,000: Mechanicus and Little Rocket Lab are available this weekend for XBOX Game Pass Ultimate, Premium and Essential members to play from Thursday, November...",
+      "image": "https://store-images.s-microsoft.com/image/apps.2169.13868663292317454.88445824-0dc3-46f6-8241-3ea5106056eb.890fd424-5522-448b-ad16-0cf6d782b299?w=400&#038;h=600",
       "publishedAt": "2026-11-26",
       "verifiedAt": "2026-11-26",
-      "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/mouse-p-i-for-hire-teases-dlc-announcement-taking-place-next-week",
-      "category": "DLC y expansiones",
-      "verificationType": "Medio especializado"
+      "sourceName": "Xbox Wire Oficial",
+      "sourceUrl": "https://news.xbox.com/en-us/2026/11/26/free-play-days-11-26-2026/",
+      "category": "Ofertas verificadas",
+      "verificationType": "Oficial"
     },
     {
-      "id": "news-no-one-gets-left-behind-cdpr-on-the-witcher-4-re",
-      "title": "\"No One Gets Left Behind\" - CDPR On The Witcher 4 Releasing For All Platforms At The Same Time",
-      "summary": "\"Switch 2 is clearly getting left behind\". This week, CD Projekt Red and Sony announced an exclusive marketing deal for Ciri's upcoming title, The Witcher 4 . It's raised some concerns online about the fourth outing...",
-      "image": "https://images.nintendolife.com/27449059c43b8/small.jpg",
+      "id": "news-lenny-kravitz-brings-bawma-the-pirate-king-of-al",
+      "title": "Lenny Kravitz Brings Bawma, the Pirate King of Aleph in 007 First Light, to HITMAN World of Assassination",
+      "summary": "Summary Grammy Award winner Lenny Kravitz makes his World of Assassination debut as Bawma, the Pirate King of Aleph from 007 First Light , in The Mutiny, a new Elusive Target available starting today through December...",
+      "image": "https://xboxwire.thesourcemediaassets.com/sites/2/2026/11/WOA_Bawma_Wire_img2-3b22debdf766e57c2f67-1024x576.jpg",
+      "publishedAt": "2026-11-26",
+      "verifiedAt": "2026-11-26",
+      "sourceName": "Xbox Wire Oficial",
+      "sourceUrl": "https://news.xbox.com/en-us/2026/11/26/hitman-bawma-elusive-target/",
+      "category": "Consolas y plataformas",
+      "verificationType": "Oficial"
+    },
+    {
+      "id": "news-ubisoft-wants-rayman-to-become-a-huge-transmedia",
+      "title": "Ubisoft Wants Rayman To Become A Huge, Transmedia Star",
+      "summary": "Legends Retold is just the beginning. Ubisoft is gearing up to launch Rayman Legends Retold , a reimagined remake of the 2013 original . While many have questioned the decision to remake a game that arguably still...",
+      "image": "https://images.nintendolife.com/2176eb7643445/small.jpg",
       "publishedAt": "2026-11-26",
       "verifiedAt": "2026-11-26",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/no-one-gets-left-behind-cdpr-on-the-witcher-4-releasing-for-all-platforms-at-the-same-time",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/ubisoft-wants-rayman-to-become-a-huge-transmedia-star",
       "category": "Consolas y plataformas",
       "verificationType": "Medio especializado"
     },
     {
-      "id": "news-video-xenoblade-chronicles-3-switch-2-edition-ov",
-      "title": "Video: Xenoblade Chronicles 3 - Switch 2 Edition Overview Trailer Showcases New Features & Enhancements",
-      "summary": "Here's what you can expect from this upgrade. Following a game update last week, preparing for the release of Xenoblade Chronicles 3 - Switch 2 Edition , Nintendo has now released a new overview trailer for this...",
-      "image": "https://images.nintendolife.com/969f77044296e/small.jpg",
+      "id": "news-gallery-get-a-closer-look-at-nintendo-s-playable",
+      "title": "Gallery: Get A Closer Look At Nintendo's Playable Ocarina Of Time",
+      "summary": "Give us a tune. Just last week, Nintendo announced that the upcoming playable and electric ocarinas, launching in conjunction with Ocarina of Time , will initially be sold on an invite-only basis in Europe. We still...",
+      "image": "https://images.nintendolife.com/e0787ab453cfb/small.jpg",
       "publishedAt": "2026-11-26",
       "verifiedAt": "2026-11-26",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/video-xenoblade-chronicles-3-switch-2-edition-overview-trailer-showcases-new-features-and-enhancements",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/gallery-get-a-closer-look-at-nintendos-playable-ocarina-of-time",
       "category": "Consolas y plataformas",
       "verificationType": "Medio especializado"
     },
     {
-      "id": "news-mario-pikachu-and-other-gaming-icon-balloons-won",
-      "title": "Mario, Pikachu, And Other Gaming Icon Balloons Won’t Be Flying This Thanksgiving",
-      "summary": "New York City is no stranger to bad weather, be it blazing-hot summers, snow-packed winters, or fierce windstorms. Unfortunately for countless families who have made it a holiday tradition to turn on the TV and watch...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/GettyImages-2248749755.jpg?w=300",
+      "id": "news-review-gamesir-nova-vision-controller-for-switch",
+      "title": "Review: Gamesir Nova Vision Controller For Switch 1 & 2 - Unique Features Elevate This Mid-Range Pad",
+      "summary": "What a vision. Accessory developer Gamesir doesn’t often make controllers with the Switch 1 and 2 in mind, instead focusing primarily on Xbox and PC. So when it announced the new Nova Vision , my Spider-Sense...",
+      "image": "https://images.nintendolife.com/637448a224e55/small.jpg",
+      "publishedAt": "2026-11-26",
+      "verifiedAt": "2026-11-26",
+      "sourceName": "Nintendo Life",
+      "sourceUrl": "https://www.nintendolife.com/reviews/gamesir-nova-vision-controller-for-switch-1-and-2-unique-features-elevate-this-mid-range-pad",
+      "category": "Consolas y plataformas",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-rockstar-games-has-a-gta-6-hit-on-its-hands-but-",
+      "title": "Rockstar Games Has A GTA 6 Hit On Its Hands, But Its Union Vote Is A Loss",
+      "summary": "Roughly 75% of Rockstar Games staff in the UK have voted against a formal recognition agreement with the Independent Workers' Union of Great Britain (IWGB). The news came in the wake of GTA 6 's record-breaking...",
+      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-6-launch-screens-7-4.jpg?w=300",
       "publishedAt": "2026-11-26",
       "verifiedAt": "2026-11-26",
       "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/mario-pikachu-and-other-gaming-icon-balloons-wont-be-flying-this-thanksgiving/",
+      "sourceUrl": "https://www.gamespot.com/articles/rockstar-games-has-a-gta-6-hit-on-its-hands-but-its-union-vote-is-a-loss/",
+      "category": "Últimas noticias",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-gta-6-s-furry-rescue-mission-is-a-little-weird-b",
+      "title": "GTA 6’s Furry Rescue Mission Is A Little Weird, But The Rewards Are Worth It",
+      "summary": "No matter what you do in GTA 6 , it pales in comparison to being a Furry in that game. Anyone looking to externalize their inner animal spirit is in danger of being hunted, and you'll find out for yourself just how...",
+      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-Fox-2.jpg?w=300",
+      "publishedAt": "2026-11-26",
+      "verifiedAt": "2026-11-26",
+      "sourceName": "GameSpot",
+      "sourceUrl": "https://www.gamespot.com/articles/gta-6-furry-rescue-mission-is-a-little-weird-but-the-rewards-are-worth-it/",
       "category": "Últimas noticias",
       "verificationType": "Medio especializado"
     },
@@ -113,54 +149,6 @@
       "verificationType": "Oficial"
     },
     {
-      "id": "news-three-years-after-his-death-ea-is-using-ai-to-br",
-      "title": "Three Years After His Death, EA Is Using AI To Bring Back A Famed Commentator In FC 27",
-      "summary": "EA Sports FC 27 is adding an AI-generated commentator for the first time in the series' history, with famed British commentator John Motson having his voice synthesized for the football title. Motson, who passed way...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/ea-sports-fc-26.jpg?w=300",
-      "publishedAt": "2026-11-25",
-      "verifiedAt": "2026-11-26",
-      "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/three-years-after-his-death-ea-is-using-ai-to-bring-back-a-famed-commentator-in-fc-27/",
-      "category": "Últimas noticias",
-      "verificationType": "Medio especializado"
-    },
-    {
-      "id": "news-diablo-4-s-most-nostalgic-season-is-becoming-mos",
-      "title": "Diablo 4’s Most Nostalgic Season Is Becoming (Mostly) Permanent",
-      "summary": "Diablo 4 is gearing up for the arrival of Season 16, but it won't be leaving its popular previous season behind entirely. As detailed by Blizzard in a breakdown of the upcoming Season of Tyrael's Gambit, much of the...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/Diablo-4-Hells-Legacy-Season-Becoming-Permanent.jpg?w=300",
-      "publishedAt": "2026-11-25",
-      "verifiedAt": "2026-11-26",
-      "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/diablo-4s-most-nostalgic-season-is-becoming-mostly-permanent/",
-      "category": "Últimas noticias",
-      "verificationType": "Medio especializado"
-    },
-    {
-      "id": "news-microsoft-flight-simulator-announces-a-marketpla",
-      "title": "Microsoft Flight Simulator Announces a Marketplace Exclusive: The iniBuilds Global Jet",
-      "summary": "The post Microsoft Flight Simulator Announces a Marketplace Exclusive: The iniBuilds Global Jet appeared first on XBOX Wire .",
-      "image": "assets/images/hero_editorial.webp",
-      "publishedAt": "2026-11-24",
-      "verifiedAt": "2026-11-26",
-      "sourceName": "Xbox Wire Oficial",
-      "sourceUrl": "https://news.xbox.com/en-us/2026/11/24/microsoft-flight-simulator-announces-a-marketplace-exclusive-the-inibuilds-global-jet/",
-      "category": "Consolas y plataformas",
-      "verificationType": "Oficial"
-    },
-    {
-      "id": "news-nioh-3-is-coming-to-xbox-in-2027",
-      "title": "Nioh 3 Is Coming to XBOX in 2027",
-      "summary": "Summary Team NINJA and Koei Tecmo are bringing the Nioh series to XBOX for the first time ever with Nioh 3 and Nioh 3: Complete Edition coming to XBOX Series X|S on January 28, 2027 . The Dark Samurai Action RPG...",
-      "image": "https://xboxwire.thesourcemediaassets.com/sites/2/2026/11/DLC2_03_Tachibana-Muneshige-b4548cf1cd8ad2132335.jpg",
-      "publishedAt": "2026-11-24",
-      "verifiedAt": "2026-11-26",
-      "sourceName": "Xbox Wire Oficial",
-      "sourceUrl": "https://news.xbox.com/en-us/2026/11/24/nioh-3-xbox-series-debut/",
-      "category": "Consolas y plataformas",
-      "verificationType": "Oficial"
-    },
-    {
       "id": "news-thank-you-for-making-grand-theft-auto-vi-the-big",
       "title": "Thank you for making Grand Theft Auto VI the biggest launch in PlayStation history",
       "summary": "After a long wait, players finally have had the chance to jump into Grand Theft Auto VI . It’s been amazing to see the PlayStation community around the world begin their adventures in the state of Leonida. Whether...",
@@ -183,6 +171,18 @@
       "sourceUrl": "https://blog.playstation.com/2026/11/20/official-playstation-podcast-episode-553-peak-gaming/",
       "category": "Anuncios oficiales",
       "verificationType": "Oficial"
+    },
+    {
+      "id": "news-help-out-some-bumbling-penguins-with-this-week-s",
+      "title": "Help Out Some Bumbling Penguins With This Week’s Epic Games Store Freebie",
+      "summary": "The Epic Games Store continues to give away a free game each week, and this week's offering is another nice find at a price that can't be beat. Every Thursday at 8 AM PT / 11 AM ET, Epic offers at least one free PC...",
+      "image": "https://www.gamespot.com/wp-content/uploads/2026/06/Bread-and-Fred.jpg?w=300",
+      "publishedAt": "2026-06-18",
+      "verifiedAt": "2026-11-26",
+      "sourceName": "GameSpot",
+      "sourceUrl": "https://www.gamespot.com/articles/free-games-epic-games-store/1100-6476419/",
+      "category": "Ofertas verificadas",
+      "verificationType": "Medio especializado"
     }
   ]
 }
