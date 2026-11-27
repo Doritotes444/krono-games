@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastSyncedAt": "2026-11-27T06:58:39Z",
+    "lastSyncedAt": "2026-11-27T20:44:06Z",
     "verifiedDate": "2026-11-27",
     "totalArticles": 12,
     "feeds": [
@@ -41,39 +41,75 @@
   },
   "articles": [
     {
-      "id": "news-pok-mon-champions-x-pok-mon-go-collab-taking-pla",
-      "title": "Pokémon Champions X Pokémon GO Collab Taking Place Next Month",
-      "summary": "Unlock a special outfit. As you've likely already seen, Pokémon Champions is getting a balance update, more Pokémon and more Mega Evolutions next month on 2nd December 2026 . Read the full article on nintendolife.com",
-      "image": "https://images.nintendolife.com/20a05c2e7714c/small.jpg",
+      "id": "news-share-of-the-week-gathered",
+      "title": "Share of the Week: Gathered",
+      "summary": "Last week, we asked you to share moments that saw characters gathering together in the game of your choice using #PSshare #PSBlog for a chance to be featured. Here are this week’s highlights: Gib84G shared this...",
+      "image": "https://live.staticflickr.com/65535/55675369248_b291410abd_k.jpg",
       "publishedAt": "2026-11-27",
       "verifiedAt": "2026-11-27",
-      "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/pokemon-champions-x-pokemon-go-collab-taking-place-next-month",
-      "category": "Consolas y plataformas",
-      "verificationType": "Medio especializado"
+      "sourceName": "PlayStation.Blog Oficial",
+      "sourceUrl": "https://blog.playstation.com/2026/11/27/share-of-the-week-gathered/",
+      "category": "Anuncios oficiales",
+      "verificationType": "Oficial"
     },
     {
-      "id": "news-jupiter-s-picross-series-for-switch-has-official",
-      "title": "Jupiter's Picross Series For Switch Has Officially Surpassed One Million Sales",
-      "summary": "The first title released on the eShop in 2017. If you've ever bought one of Jupiter Corporation's Picross games on the Switch, you've helped the series reach a major milestone. The Kyoto-based developer has this week...",
-      "image": "https://images.nintendolife.com/de9b7adb8d052/small.jpg",
+      "id": "news-next-week-on-xbox-new-games-for-november-30-to-d",
+      "title": "Next Week on XBOX: New Games for November 30 to December 4",
+      "summary": "Welcome to Next Week on XBOX! In this weekly feature we cover all the games coming soon to XBOX Series X|S, XBOX One, XBOX on PC, and Game Pass! Get more details on these upcoming games below and click their profiles...",
+      "image": "https://store-images.s-microsoft.com/image/apps.37680.13695455777746470.b5065f12-4f24-419f-8748-b2862b4eb30c.3be8773f-10df-4d40-a088-e321a9b99f87?w=400&#038;h=600",
+      "publishedAt": "2026-11-27",
+      "verifiedAt": "2026-11-27",
+      "sourceName": "Xbox Wire Oficial",
+      "sourceUrl": "https://news.xbox.com/en-us/2026/11/27/next-week-on-xbox-new-games-for-november-30-to-december-4/",
+      "category": "Consolas y plataformas",
+      "verificationType": "Oficial"
+    },
+    {
+      "id": "news-site-news-nintendo-life-s-black-friday-sale",
+      "title": "Site News: Nintendo Life's Black Friday Sale",
+      "summary": "Support us with 10% off. Tis the season for Black Friday deals and we've got a couple of our own to offer to you. We hope that you are already aware that Nintendo Life relies on advertising revenue to continue to...",
+      "image": "https://images.nintendolife.com/eecbc5fa0f938/small.jpg",
       "publishedAt": "2026-11-27",
       "verifiedAt": "2026-11-27",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/jupiters-picross-series-for-switch-has-officially-surpassed-one-million-sales",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/site-news-nintendo-lifes-black-friday-sale",
       "category": "Ofertas verificadas",
       "verificationType": "Medio especializado"
     },
     {
-      "id": "news-square-enix-says-its-efforts-supporting-switch-2",
-      "title": "Square Enix Says Its Efforts Supporting Switch 2 Have Contributed To Its Strong Financial Results",
-      "summary": "It's one of the platform's biggest third-party supporters. Square Enix has been one of the biggest third-party supporters of the Nintendo Switch 2, and it seems it's already paying off. In the Japanese company's...",
-      "image": "https://images.nintendolife.com/3e53266efc5f2/small.jpg",
+      "id": "news-team-cherry-uses-the-pull-of-silksong-to-highlig",
+      "title": "Team Cherry Uses The Pull Of Silksong To Highlight A Trio Of Wonderful-Looking Indies",
+      "summary": "And we want them all! Just when we thought that we couldn't have any more respect for Team Cherry, the dev goes and uses its platform to highlight even more adorable-looking indies coming out of Australia. The Cherry...",
+      "image": "https://images.nintendolife.com/f019befa6a610/small.jpg",
       "publishedAt": "2026-11-27",
       "verifiedAt": "2026-11-27",
       "sourceName": "Nintendo Life",
-      "sourceUrl": "https://www.nintendolife.com/news/2026/11/square-enix-says-its-efforts-supporting-switch-2-have-contributed-to-its-strong-financial-results",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/team-cherry-uses-the-pull-of-silksong-to-highlight-a-trio-of-wonderful-looking-indies",
       "category": "Consolas y plataformas",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-hollow-knight-silksong-sea-of-sorrow-dlc-finally",
+      "title": "Hollow Knight: Silksong - Sea Of Sorrow DLC Finally Has A Release Date",
+      "summary": "The game's first free expansion. We had our fingers crossed that Team Cherry might reveal the release date for Hollow Knight: Silksong 's first DLC in its special presentation today , and what do you know, it did!...",
+      "image": "https://images.nintendolife.com/b71d6588f7076/small.jpg",
+      "publishedAt": "2026-11-27",
+      "verifiedAt": "2026-11-27",
+      "sourceName": "Nintendo Life",
+      "sourceUrl": "https://www.nintendolife.com/news/2026/11/hollow-knight-silksong-sea-of-sorrow-dlc-finally-has-a-release-date",
+      "category": "DLC y expansiones",
+      "verificationType": "Medio especializado"
+    },
+    {
+      "id": "news-xbox-game-pass-kicks-off-december-with-horror-co",
+      "title": "Xbox Game Pass Kicks Off December With Horror, Cozy Adventures, And More",
+      "summary": "One last month of 2026 brings two more waves of Xbox Game Pass titles to close out the year. Subscribers can once again look forward to some new arrivals in the Xbox Game Pass library, ranging from gruesome co-op...",
+      "image": "https://www.gamespot.com/wp-content/uploads/original/1601/16018044/4541297-hela.jpg?w=300",
+      "publishedAt": "2026-11-27",
+      "verifiedAt": "2026-11-27",
+      "sourceName": "GameSpot",
+      "sourceUrl": "https://www.gamespot.com/articles/xbox-game-pass-kicks-off-december-with-horror-cozy-adventures-and-more/",
+      "category": "Últimas noticias",
       "verificationType": "Medio especializado"
     },
     {
@@ -125,18 +161,6 @@
       "verificationType": "Medio especializado"
     },
     {
-      "id": "news-gta-6-s-furry-rescue-mission-is-a-little-weird-b",
-      "title": "GTA 6’s Furry Rescue Mission Is A Little Weird, But The Rewards Are Worth It",
-      "summary": "No matter what you do in GTA 6 , it pales in comparison to being a Furry in that game. Anyone looking to externalize their inner animal spirit is in danger of being hunted, and you'll find out for yourself just how...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/11/GTA-Fox-2.jpg?w=300",
-      "publishedAt": "2026-11-26",
-      "verifiedAt": "2026-11-27",
-      "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/gta-6-furry-rescue-mission-is-a-little-weird-but-the-rewards-are-worth-it/",
-      "category": "Últimas noticias",
-      "verificationType": "Medio especializado"
-    },
-    {
       "id": "news-playstation-plus-monthly-games-for-december-tony",
       "title": "PlayStation Plus Monthly Games for December: Tony Hawk’s Pro Skater 3+4, Dragon Ball Xenoverse 2, Amnesia: The Bunker",
       "summary": "Shred rails, fight icons and flee horrors beyond your understanding with the PlayStation Plus Monthly Games for December. Tony Hawk’s Pro Skater 3+4, Dragon Ball Xenoverse 2, and Amnesia: The Bunker will be available...",
@@ -149,39 +173,15 @@
       "verificationType": "Oficial"
     },
     {
-      "id": "news-achievement-unlocked-an-interview-with-the-first",
-      "title": "Achievement Unlocked: An Interview with the First XBOX Player to Reach 10 Million Gamerscore",
-      "summary": "On September 9, 2026, at 3:35pm Pacific Time, SiegfriedX unlocked a 110-point XBOX Achievement that pushed his Gamerscore to a historic 10 million. With that, he became the first XBOX player in the world to reach the...",
-      "image": "https://xboxwire.thesourcemediaassets.com/sites/2/2026/11/Siegfried_XBOX_Playback-a1988d1fe0b378c4073e-357x683.png",
+      "id": "news-hollow-knight-silksong-s-first-expansion-details",
+      "title": "Hollow Knight: Silksong’s First Expansion Details Coming Friday, Here’s How To Watch",
+      "summary": "Hollow Knight: Silksong was such a highly anticipated sequel that it became a meme, so naturally, as soon as it was released, Hollow Knight fans started looking forward to the next big event: the promised Sea of...",
+      "image": "https://www.gamespot.com/wp-content/uploads/original/1752/17528202/4665483-12.silksong.jpg?w=300",
       "publishedAt": "2026-11-25",
       "verifiedAt": "2026-11-27",
-      "sourceName": "Xbox Wire Oficial",
-      "sourceUrl": "https://news.xbox.com/en-us/2026/11/25/achievements-10-million-gamerscore-interview/",
-      "category": "Consolas y plataformas",
-      "verificationType": "Oficial"
-    },
-    {
-      "id": "news-thank-you-for-making-grand-theft-auto-vi-the-big",
-      "title": "Thank you for making Grand Theft Auto VI the biggest launch in PlayStation history",
-      "summary": "After a long wait, players finally have had the chance to jump into Grand Theft Auto VI . It’s been amazing to see the PlayStation community around the world begin their adventures in the state of Leonida. Whether...",
-      "image": "assets/images/hero_editorial.webp",
-      "publishedAt": "2026-11-23",
-      "verifiedAt": "2026-11-27",
-      "sourceName": "PlayStation.Blog Oficial",
-      "sourceUrl": "https://blog.playstation.com/2026/11/23/thank-you-for-making-grand-theft-auto-vi-the-biggest-launch-in-playstation-history/",
-      "category": "Lanzamientos",
-      "verificationType": "Oficial"
-    },
-    {
-      "id": "news-help-out-some-bumbling-penguins-with-this-week-s",
-      "title": "Help Out Some Bumbling Penguins With This Week’s Epic Games Store Freebie",
-      "summary": "The Epic Games Store continues to give away a free game each week, and this week's offering is another nice find at a price that can't be beat. Every Thursday at 8 AM PT / 11 AM ET, Epic offers at least one free PC...",
-      "image": "https://www.gamespot.com/wp-content/uploads/2026/06/Bread-and-Fred.jpg?w=300",
-      "publishedAt": "2026-06-18",
-      "verifiedAt": "2026-11-27",
       "sourceName": "GameSpot",
-      "sourceUrl": "https://www.gamespot.com/articles/free-games-epic-games-store/1100-6476419/",
-      "category": "Ofertas verificadas",
+      "sourceUrl": "https://www.gamespot.com/articles/hollow-knight-silksongs-first-expansion-details-coming-friday-heres-how-to-watch/",
+      "category": "DLC y expansiones",
       "verificationType": "Medio especializado"
     }
   ]
